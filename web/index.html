@@ -18,29 +18,64 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Purpose-built workout tracker for the r/bodyweightfitness Recommended Routine with progression ladders, alternating pairs, and rest timers.">
+
+  <!-- Open Graph / Social Preview -->
+  <meta property="og:title" content="BWF Recommended Routine Tracker">
+  <meta property="og:description" content="Dedicated tracker for the Reddit Bodyweight Fitness Recommended Routine.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0C0E14">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="workout_app_1">
+  <meta name="apple-mobile-web-app-title" content="BWF Tracker">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>workout_app_1</title>
+  <title>BWF Recommended Routine</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      background-color: #0C0E14;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #C6FF00;
+    }
+    .boot-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #1F2430;
+      border-top: 4px solid #C6FF00;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div class="boot-loader">
+    <div class="spinner"></div>
+    <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: #F1F5F9;">
+      LOADING BWF ROUTINE...
+    </div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
