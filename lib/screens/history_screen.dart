@@ -19,32 +19,27 @@ class HistoryScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: true,
+      showDragHandle: true,
       backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.7,
+          initialChildSize: 0.75,
           minChildSize: 0.4,
           maxChildSize: 0.95,
+          snap: true,
+          snapSizes: const [0.4, 0.75, 0.95],
           expand: false,
           builder: (_, scrollController) {
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: ListView(
                 controller: scrollController,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceBorder,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,25 +187,35 @@ class HistoryScreen extends StatelessWidget {
 
   Widget _detailChip({required IconData icon, required String label, required String value}) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.surfaceBorder),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(height: 4),
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
               fontFeatures: [FontFeature.tabularFigures()],
+              letterSpacing: -0.3,
             ),
           ),
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -284,10 +289,11 @@ class HistoryScreen extends StatelessWidget {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
+                                color: AppColors.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                               ),
-                              child: const Icon(Icons.fitness_center, color: AppColors.primary),
+                              child: const Icon(Icons.history_edu_rounded, color: AppColors.primary, size: 22),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -298,16 +304,18 @@ class HistoryScreen extends StatelessWidget {
                                     dateStr,
                                     style: const TextStyle(
                                       fontSize: 15,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w800,
                                       color: AppColors.textPrimary,
+                                      letterSpacing: -0.2,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 3),
                                   Text(
-                                    '$timeStr • ${_formatDuration(session.durationSeconds)}',
+                                    '$timeStr  •  ${_formatDuration(session.durationSeconds)}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
@@ -323,20 +331,22 @@ class HistoryScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.primary,
                                     fontFeatures: [FontFeature.tabularFigures()],
+                                    letterSpacing: -0.2,
                                   ),
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
-                                  '${session.completedSetCount} sets',
+                                  '${session.completedSetCount} sets logged',
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textMuted,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textMuted),
                           ],
                         ),
                       ),

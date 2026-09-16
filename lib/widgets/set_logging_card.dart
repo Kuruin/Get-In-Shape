@@ -25,43 +25,43 @@ class SetLoggingCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.surfaceBorder),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'LOG SETS (3 SETS TARGET)',
+              const Text(
+                'SETS TO COMPLETE',
                 style: TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
                 ),
               ),
               if (controller.checkProgressionReady(ladderId))
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.primary),
+                    color: AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(Icons.arrow_upward, size: 12, color: AppColors.primary),
+                      Icon(Icons.arrow_upward_rounded, size: 12, color: AppColors.primary),
                       SizedBox(width: 4),
                       Text(
-                        'Ready to Level Up!',
+                        'Ready to Level Up',
                         style: TextStyle(
                           color: AppColors.primary,
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -70,7 +70,7 @@ class SetLoggingCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           for (int i = 0; i < sets.length; i++)
             _buildSetRow(context, sets[i], i),
         ],
@@ -82,19 +82,23 @@ class SetLoggingCard extends StatelessWidget {
     final isDone = set.isCompleted;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isDone ? AppColors.surfaceBorder.withValues(alpha: 0.4) : AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(12),
+        color: isDone
+            ? AppColors.surfaceBorder.withValues(alpha: 0.3)
+            : AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDone ? AppColors.primary.withValues(alpha: 0.5) : AppColors.surfaceBorder,
-          width: isDone ? 1.5 : 1,
+          color: isDone
+              ? AppColors.primary.withValues(alpha: 0.4)
+              : AppColors.surfaceBorder,
+          width: isDone ? 1.2 : 1,
         ),
       ),
       child: Row(
         children: [
-          // Set number label
+          // Set number circle
           Container(
             width: 28,
             height: 28,
@@ -106,8 +110,8 @@ class SetLoggingCard extends StatelessWidget {
             child: Text(
               '${index + 1}',
               style: TextStyle(
-                color: isDone ? Colors.black : AppColors.textPrimary,
-                fontSize: 13,
+                color: isDone ? AppColors.onPrimary : AppColors.textPrimary,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w800,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -115,7 +119,7 @@ class SetLoggingCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Target hint
+          // Target label
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -131,7 +135,7 @@ class SetLoggingCard extends StatelessWidget {
                 exercise.isTimed ? '${set.reps}s' : '${set.reps} reps',
                 style: TextStyle(
                   color: isDone ? AppColors.primary : AppColors.textMuted,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w600,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -140,80 +144,96 @@ class SetLoggingCard extends StatelessWidget {
           ),
           const Spacer(),
 
-          // Rep counter steppers
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.remove_circle_outline, size: 22, color: AppColors.textSecondary),
-                onPressed: () {
-                  if (set.reps > 0) {
-                    controller.updateSetReps(ladderId, index, set.reps - 1);
-                  }
-                },
-              ),
-              Container(
-                constraints: const BoxConstraints(minWidth: 32),
-                alignment: Alignment.center,
-                child: Text(
-                  '${set.reps}',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                    fontFeatures: [FontFeature.tabularFigures()],
+          // Minimalist Rep Stepper
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.surfaceBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    if (set.reps > 0) {
+                      controller.updateSetReps(ladderId, index, set.reps - 1);
+                    }
+                  },
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: Icon(Icons.remove, size: 16, color: AppColors.textSecondary),
                   ),
                 ),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.add_circle_outline, size: 22, color: AppColors.textSecondary),
-                onPressed: () {
-                  controller.updateSetReps(ladderId, index, set.reps + 1);
-                },
-              ),
-            ],
+                Container(
+                  constraints: const BoxConstraints(minWidth: 28),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${set.reps}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    controller.updateSetReps(ladderId, index, set.reps + 1);
+                  },
+                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: Icon(Icons.add, size: 16, color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
 
           // Complete Button / Rest Trigger
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDone ? AppColors.primary : AppColors.surfaceBorder,
-              foregroundColor: isDone ? Colors.black : AppColors.textPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
+          InkWell(
+            onTap: () {
               controller.completeSetAndTriggerRest(
                 ladderId: ladderId,
                 setIndex: index,
                 restSeconds: defaultRestSeconds,
               );
             },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isDone ? Icons.check_circle : Icons.timer,
-                  size: 16,
-                  color: isDone ? Colors.black : AppColors.primary,
+            borderRadius: BorderRadius.circular(10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDone ? AppColors.primary : AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDone ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  isDone ? 'Done' : '${defaultRestSeconds}s',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: isDone ? Colors.black : AppColors.textPrimary,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isDone ? Icons.check_rounded : Icons.timer_outlined,
+                    size: 15,
+                    color: isDone ? AppColors.onPrimary : AppColors.primary,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 5),
+                  Text(
+                    isDone ? 'Done' : '${defaultRestSeconds}s',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: isDone ? AppColors.onPrimary : AppColors.primary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

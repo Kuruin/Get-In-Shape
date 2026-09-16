@@ -91,10 +91,10 @@ void main() {
     await tester.pumpWidget(BwfWorkoutApp(controller: controller));
     await tester.pumpAndSettle();
 
-    expect(find.text('RECOMMENDED\nROUTINE'), findsOneWidget);
-    expect(find.text('Start BWF Routine'), findsOneWidget);
+    expect(find.text('Recommended\nRoutine'), findsOneWidget);
+    expect(find.text('Start Workout'), findsOneWidget);
     expect(find.text('Routine'), findsOneWidget);
-    expect(find.text('Progressions'), findsOneWidget);
-    expect(find.text('History'), findsOneWidget);
+    expect(find.text('Ladders'), findsOneWidget);
+    expect(find.text('Logbook'), findsOneWidget);
   });
 }

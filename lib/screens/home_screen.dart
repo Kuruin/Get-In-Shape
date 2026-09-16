@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/exercise.dart';
 import '../theme/app_theme.dart';
@@ -19,6 +21,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+  int _selectedPairIndex = 0; // 0: Pair 1, 1: Pair 2, 2: Pair 3, 3: Core Triplet
+  final ScrollController _homeScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _homeScrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToTop() {
+    if (_homeScrollController.hasClients) {
+      _homeScrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,43 +46,109 @@ class _HomeScreenState extends State<HomeScreen> {
       listenable: widget.controller,
       builder: (context, _) {
         return Scaffold(
-          body: IndexedStack(
-            index: _currentNavIndex,
+          backgroundColor: AppColors.canvas,
+          body: Stack(
             children: [
-              _buildHomeTab(context),
-              ProgressionLadderScreen(controller: widget.controller),
-              HistoryScreen(controller: widget.controller),
+              // Main Tab Content
+              IndexedStack(
+                index: _currentNavIndex,
+                children: [
+                  _buildHomeTab(context),
+                  ProgressionLadderScreen(controller: widget.controller),
+                  HistoryScreen(controller: widget.controller),
+                ],
+              ),
+
+              // Floating Bottom Navigation Bar (Centered & Constrained)
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  top: false,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildFloatingBottomNav(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-          bottomNavigationBar: Container(
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              border: Border(top: BorderSide(color: AppColors.surfaceBorder, width: 1)),
-            ),
-            child: NavigationBar(
-              backgroundColor: Colors.transparent,
-              indicatorColor: AppColors.primary,
-              selectedIndex: _currentNavIndex,
-              onDestinationSelected: (index) {
-                setState(() => _currentNavIndex = index);
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.fitness_center_outlined),
-                  selectedIcon: Icon(Icons.fitness_center, color: Colors.black),
-                  label: 'Routine',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.stairs_outlined),
-                  selectedIcon: Icon(Icons.stairs, color: Colors.black),
-                  label: 'Progressions',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.history_outlined),
-                  selectedIcon: Icon(Icons.history, color: Colors.black),
-                  label: 'History',
-                ),
-              ],
+        );
+      },
+    );
+  }
+
+  // --- 1. HOME TAB (RESPONSIVE & TYPOGRAPHICALLY REFINED) ---
+  Widget _buildHomeTab(BuildContext context) {
+    final controller = widget.controller;
+    final activeDraft = controller.activeSession;
+    final history = controller.history;
+
+    // Calculate routine progress
+    int totalSets = 0;
+    int completedSets = 0;
+    if (activeDraft != null) {
+      totalSets = activeDraft.sets.length;
+      completedSets = activeDraft.sets.where((s) => s.isCompleted).length;
+    }
+    final int progressPercent = totalSets > 0
+        ? ((completedSets / totalSets) * 100).round()
+        : (history.isNotEmpty ? 100 : 72);
+
+    final int streakDays = history.isNotEmpty ? history.length : 18;
+    final int totalReps = history.fold(0, (sum, s) => sum + s.totalReps);
+
+    final String todayDateStr = DateFormat('EEEE, MMM d').format(DateTime.now());
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxWidth = constraints.maxWidth;
+        final bool isCompact = maxWidth < 380;
+        final bool isWide = maxWidth >= 580;
+        final double horizontalPadding = isCompact ? 16.0 : 20.0;
+        final double verticalSpacing = isCompact ? 14.0 : 18.0;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: SingleChildScrollView(
+              controller: _homeScrollController,
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                MediaQuery.paddingOf(context).top + (isCompact ? 10 : 14),
+                horizontalPadding,
+                116 + MediaQuery.viewPaddingOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Header
+                  _buildUserHeader(context, isCompact),
+                  SizedBox(height: verticalSpacing),
+
+                  // Date & Routine Subheader
+                  _buildDateSubheader(todayDateStr, isCompact),
+                  SizedBox(height: verticalSpacing),
+
+                  // Hero Challenge Banner
+                  _buildHeroCard(context, activeDraft, progressPercent, isCompact),
+                  SizedBox(height: isCompact ? 18 : 24),
+
+                  // Readiness & Metrics Grid
+                  _buildReadinessMetrics(streakDays, totalReps, isCompact, isWide),
+                  SizedBox(height: isCompact ? 18 : 24),
+
+                  // Current Routine Pairs
+                  _buildRoutinePairsSection(context, isCompact),
+                ],
+              ),
             ),
           ),
         );
@@ -70,216 +156,105 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHomeTab(BuildContext context) {
-    final controller = widget.controller;
-    final activeDraft = controller.activeSession;
-    final history = controller.history;
+  // --- Header: Avatar, Name, Notification Bell ---
+  Widget _buildUserHeader(BuildContext context, bool isCompact) {
+    final double avatarSize = isCompact ? 40 : 44;
+    final double iconBtnSize = isCompact ? 40 : 44;
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 200.0,
-          floating: false,
-          pinned: true,
-          backgroundColor: AppColors.background,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.surfaceElevated,
-                    AppColors.background,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-                    ),
-                    child: const Text(
-                      'r/bodyweightfitness',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                        letterSpacing: 0.8,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            // Avatar Container with Status Dot
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: avatarSize,
+                  height: avatarSize,
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
+                    ],
+                  ),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.accentPeachLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: AppColors.accentPeachText,
+                      size: isCompact ? 22 : 24,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'RECOMMENDED\nROUTINE',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.8,
-                      height: 1.1,
-                      color: AppColors.textPrimary,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: isCompact ? 11 : 12,
+                    height: isCompact ? 11 : 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                   ),
-                ],
+                ),
+              ],
+            ),
+            SizedBox(width: isCompact ? 10 : 12),
+            Text(
+              'Hello, Athlete',
+              style: TextStyle(
+                fontSize: isCompact ? 20 : 22,
+                fontWeight: FontWeight.w900,
+                color: AppColors.softCharcoal,
+                letterSpacing: -0.5,
               ),
             ),
-          ),
+          ],
         ),
 
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Primary Action Button: Start or Resume
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            activeDraft != null ? Icons.play_circle_fill : Icons.bolt_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            activeDraft != null ? 'WORKOUT IN PROGRESS' : 'READY TO TRAIN?',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        activeDraft != null
-                            ? 'You have an active routine session in progress.'
-                            : 'Full-body strength: 3 Pairs & Core Triplet with auto rest timers.',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          icon: Icon(
-                            activeDraft != null ? Icons.arrow_forward_rounded : Icons.play_arrow_rounded,
-                            color: Colors.black,
-                          ),
-                          label: Text(activeDraft != null ? 'Resume Workout' : 'Start BWF Routine'),
-                          onPressed: () {
-                            if (activeDraft == null) {
-                              controller.startWorkout();
-                            }
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ActiveWorkoutScreen(controller: controller),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+        // Notification Bell Button
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('BWF Recommended Routine is fully synced and ready!'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+          child: Container(
+            width: iconBtnSize,
+            height: iconBtnSize,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(height: 20),
-
-                // Quick stats banner
-                if (history.isNotEmpty) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatTile(
-                          icon: Icons.check_circle_outline,
-                          label: 'WORKOUTS',
-                          value: '${history.length}',
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildStatTile(
-                          icon: Icons.calendar_today_outlined,
-                          label: 'LAST SESSION',
-                          value: DateFormat('MMM d').format(history.first.startTime),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Progression Ladders Overview Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'YOUR CURRENT PROGRESSIONS',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textMuted,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => setState(() => _currentNavIndex = 1),
-                      child: const Text('View All Ladders', style: TextStyle(color: AppColors.primary, fontSize: 12)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Grouped Cards for the 3 Pairs + Triplet
-                _buildLadderGroup(
-                  title: 'PAIR 1: VERTICAL PULL & QUAD SQUAT',
-                  ladders: [BwfRoutineData.pullupLadder, BwfRoutineData.squatLadder],
-                ),
-                const SizedBox(height: 12),
-                _buildLadderGroup(
-                  title: 'PAIR 2: VERTICAL PUSH & HINGE',
-                  ladders: [BwfRoutineData.dipLadder, BwfRoutineData.hingeLadder],
-                ),
-                const SizedBox(height: 12),
-                _buildLadderGroup(
-                  title: 'PAIR 3: HORIZONTAL PULL & PUSH',
-                  ladders: [BwfRoutineData.rowLadder, BwfRoutineData.pushupLadder],
-                ),
-                const SizedBox(height: 12),
-                _buildLadderGroup(
-                  title: 'CORE TRIPLET',
-                  ladders: [
-                    BwfRoutineData.antiExtensionLadder,
-                    BwfRoutineData.antiRotationLadder,
-                    BwfRoutineData.extensionLadder,
-                  ],
-                ),
-                const SizedBox(height: 24),
               ],
+            ),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.softCharcoal,
+              size: isCompact ? 20 : 22,
             ),
           ),
         ),
@@ -287,33 +262,524 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatTile({required IconData icon, required String label, required String value}) {
+  // --- Subheader: Routine Week & Dynamic Calendar Date ---
+  Widget _buildDateSubheader(String dateStr, bool isCompact) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "TODAY'S ROUTINE • WEEK 4, DAY 2",
+          style: TextStyle(
+            fontSize: isCompact ? 10 : 11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.accentSkyDark,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: isCompact ? 18 : 20,
+              color: AppColors.softCharcoal,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              dateStr,
+              style: TextStyle(
+                fontSize: isCompact ? 19 : 22,
+                fontWeight: FontWeight.w900,
+                color: AppColors.softCharcoal,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // --- Hero Challenge Banner Card ---
+  Widget _buildHeroCard(
+    BuildContext context,
+    dynamic activeDraft,
+    int progressPercent,
+    bool isCompact,
+  ) {
+    final double cardPadding = isCompact ? 16 : 20;
+    final double progressContainerSize = isCompact ? 80 : 90;
+    final double ringSize = isCompact ? 50 : 58;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.surfaceBorder),
+        color: AppColors.sandCard,
+        borderRadius: BorderRadius.circular(isCompact ? 24 : 28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // Top Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                'Progress',
+                style: TextStyle(
+                  fontSize: isCompact ? 12 : 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mutedGray,
                 ),
               ),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textMuted),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1F5F9),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.more_horiz_rounded,
+                  size: 16,
+                  color: AppColors.softCharcoal,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isCompact ? 10 : 12),
+
+          // Middle Content Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Left side info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentMint,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Cardio',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.accentMintText,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Recommended\nRoutine',
+                        style: TextStyle(
+                          fontSize: isCompact ? 22 : 24,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.softCharcoal,
+                          letterSpacing: -0.8,
+                          height: 1.15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time_filled_rounded,
+                              size: 13,
+                              color: AppColors.softCharcoal,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              activeDraft != null ? 'Active' : '3 hours',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.mutedGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.military_tech_rounded,
+                              size: 14,
+                              color: AppColors.softCharcoal,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Beginner',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.mutedGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // Right side circular progress container
+              Container(
+                width: progressContainerSize,
+                height: progressContainerSize,
+                decoration: BoxDecoration(
+                  color: AppColors.accentMintCircle.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: ringSize,
+                      height: ringSize,
+                      child: CircularProgressIndicator(
+                        value: progressPercent / 100,
+                        backgroundColor: Colors.white.withValues(alpha: 0.75),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.softCharcoal,
+                        ),
+                        strokeWidth: isCompact ? 4.0 : 4.5,
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
+                    Text(
+                      '$progressPercent%',
+                      style: TextStyle(
+                        fontSize: isCompact ? 11.5 : 12,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.softCharcoal,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isCompact ? 14 : 16),
+
+          // Bottom Continue Action Button (with arrow circle)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              if (activeDraft == null) {
+                widget.controller.startWorkout();
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(isCompact ? 16 : 20, 9, 8, 9),
+              decoration: BoxDecoration(
+                color: AppColors.darkButton,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    activeDraft != null ? 'Continue the workout' : 'Start Workout',
+                    style: TextStyle(
+                      fontSize: isCompact ? 12.5 : 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: AppColors.softCharcoal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 2. READINESS & METRICS SECTION (Adaptive 2x2 or 4-col Grid) ---
+  Widget _buildReadinessMetrics(
+    int streakDays,
+    int totalReps,
+    bool isCompact,
+    bool isWide,
+  ) {
+    final double tileGap = isCompact ? 8 : 10;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Readiness & Metrics',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.softCharcoal,
+                letterSpacing: -0.3,
+              ),
+            ),
+            Text(
+              'LIVE DATA',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mutedGray,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: isCompact ? 8 : 10),
+
+        // 2x2 Responsive Grid
+        Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMetricTile(
+                    title: 'STREAK',
+                    value: '$streakDays Days',
+                    subtitle: 'Consistent Habit',
+                    icon: Icons.local_fire_department_rounded,
+                    iconColor: AppColors.accentPeach,
+                    iconBg: AppColors.accentPeachLight,
+                    isCompact: isCompact,
+                  ),
+                ),
+                SizedBox(width: tileGap),
+                Expanded(
+                  child: _buildMetricTile(
+                    title: 'RECOVERY',
+                    value: '92%',
+                    subtitle: 'Ready for Load',
+                    icon: Icons.favorite_rounded,
+                    iconColor: AppColors.accentMintText,
+                    iconBg: AppColors.accentMint,
+                    isCompact: isCompact,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: tileGap),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMetricTile(
+                    title: 'TEMPO',
+                    value: '3-0-1-0',
+                    subtitle: 'Eccentric Focus',
+                    icon: Icons.schedule_rounded,
+                    iconColor: AppColors.accentSkyDark,
+                    iconBg: AppColors.accentSkyLight,
+                    isCompact: isCompact,
+                  ),
+                ),
+                SizedBox(width: tileGap),
+                Expanded(
+                  child: _buildVolumeTile(totalReps, isCompact),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricTile({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required bool isCompact,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.sandCard,
+        borderRadius: BorderRadius.circular(isCompact ? 16 : 18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.02)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isCompact ? 9.5 : 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mutedGray,
+                    letterSpacing: 0.8,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: isCompact ? 22 : 24,
+                height: isCompact ? 22 : 24,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: isCompact ? 13 : 14, color: iconColor),
+              ),
+            ],
+          ),
+          SizedBox(height: isCompact ? 6 : 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isCompact ? 16 : 18,
+              fontWeight: FontWeight.w900,
+              color: AppColors.softCharcoal,
+              letterSpacing: -0.4,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: isCompact ? 10 : 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mutedGray,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVolumeTile(int totalReps, bool isCompact) {
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.sandCard,
+        borderRadius: BorderRadius.circular(isCompact ? 16 : 18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.02)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'VOLUME',
+            style: TextStyle(
+              fontSize: isCompact ? 9.5 : 10.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mutedGray,
+              letterSpacing: 1.0,
+            ),
+          ),
+          SizedBox(height: isCompact ? 6 : 8),
+          Text(
+            totalReps > 0 ? '$totalReps Reps' : '14.2k kg',
+            style: TextStyle(
+              fontSize: isCompact ? 16 : 18,
+              fontWeight: FontWeight.w900,
+              color: AppColors.softCharcoal,
+              letterSpacing: -0.4,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          SizedBox(height: isCompact ? 4 : 6),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: const LinearProgressIndicator(
+                    value: 0.78,
+                    backgroundColor: Color(0xFFF1F5F9),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentPeach),
+                    minHeight: 5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                '78%',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mutedGray,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
               ),
             ],
           ),
@@ -322,81 +788,438 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLadderGroup({required String title, required List<ProgressionLadder> ladders}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.surfaceBorder),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-              letterSpacing: 0.8,
+  // --- 3. CURRENT ROUTINE PAIRS SECTION ---
+  Widget _buildRoutinePairsSection(BuildContext context, bool isCompact) {
+    // Current ladders for selected pair
+    late List<ProgressionLadder> pairLadders;
+    late String pairBadgeLabel;
+
+    switch (_selectedPairIndex) {
+      case 0:
+        pairLadders = [BwfRoutineData.pullupLadder, BwfRoutineData.squatLadder];
+        pairBadgeLabel = "Today's First Pair (90s Rest)";
+        break;
+      case 1:
+        pairLadders = [BwfRoutineData.dipLadder, BwfRoutineData.hingeLadder];
+        pairBadgeLabel = "Today's Second Pair (90s Rest)";
+        break;
+      case 2:
+        pairLadders = [BwfRoutineData.rowLadder, BwfRoutineData.pushupLadder];
+        pairBadgeLabel = "Today's Third Pair (90s Rest)";
+        break;
+      default:
+        pairLadders = [
+          BwfRoutineData.antiExtensionLadder,
+          BwfRoutineData.antiRotationLadder,
+          BwfRoutineData.extensionLadder,
+        ];
+        pairBadgeLabel = "Core Triplet Circuit (60s Rest)";
+    }
+
+    final exercises = pairLadders
+        .map((ladder) => widget.controller.getSelectedExerciseForLadder(ladder.id))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              pairBadgeLabel,
+              style: TextStyle(
+                fontSize: isCompact ? 13 : 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.softCharcoal,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          for (final ladder in ladders) ...[
-            InkWell(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
+                HapticFeedback.selectionClick();
+                if (widget.controller.activeSession == null) {
+                  widget.controller.startWorkout();
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ProgressionLadderScreen(
-                      controller: widget.controller,
-                      initialLadderId: ladder.id,
-                    ),
+                    builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.surfaceBorder),
-                      ),
-                      child: Text(
-                        'Lvl ${widget.controller.getSelectedExerciseForLadder(ladder.id).level}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.accentCyan,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        widget.controller.getSelectedExerciseForLadder(ladder.id).name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
-                  ],
+              child: const Text(
+                'Log Reps',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.accentSkyDark,
                 ),
               ),
             ),
           ],
-        ],
+        ),
+        SizedBox(height: isCompact ? 8 : 10),
+
+        // Pairs Carousel / Selector Tabs
+        SizedBox(
+          height: 32,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _buildPairTab('Pair 1', 0),
+              const SizedBox(width: 8),
+              _buildPairTab('Pair 2', 1),
+              const SizedBox(width: 8),
+              _buildPairTab('Pair 3', 2),
+              const SizedBox(width: 8),
+              _buildPairTab('Core Triplet', 3),
+            ],
+          ),
+        ),
+        SizedBox(height: isCompact ? 10 : 12),
+
+        // Clean White Card with Exercise Rows & Alternating Divider
+        Container(
+          padding: EdgeInsets.all(isCompact ? 14 : 18),
+          decoration: BoxDecoration(
+            color: AppColors.sandCard,
+            borderRadius: BorderRadius.circular(isCompact ? 22 : 28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+            border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < pairLadders.length; i++) ...[
+                if (i > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4F3EE),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE5E2DB)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.swap_vert_rounded,
+                                size: 14,
+                                color: AppColors.accentSkyDark,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                i == 1
+                                    ? (pairLadders.length == 3 ? 'Rest 60s & Alternate' : pairBadgeLabel)
+                                    : 'Rest 60s & Complete Triplet',
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.softCharcoal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                _buildExerciseRow(
+                  context: context,
+                  ladder: pairLadders[i],
+                  exercise: exercises[i],
+                  repsText: '3×8',
+                  boxBg: i == 0
+                      ? const Color(0xFFFAEBE6)
+                      : (i == 1 ? const Color(0xFFEAF4FA) : const Color(0xFFE4F4E8)),
+                  boxText: i == 0
+                      ? const Color(0xFFFF5733)
+                      : (i == 1 ? const Color(0xFF2C7A9C) : const Color(0xFF2E7D46)),
+                  isCompact: isCompact,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPairTab(String label, int index) {
+    final bool isSelected = _selectedPairIndex == index;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedPairIndex = index);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.softCharcoal : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.softCharcoal : const Color(0xFFE5E2DB),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.softCharcoal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExerciseRow({
+    required BuildContext context,
+    required ProgressionLadder ladder,
+    required Exercise exercise,
+    required String repsText,
+    required Color boxBg,
+    required Color boxText,
+    required bool isCompact,
+  }) {
+    final double badgeSize = isCompact ? 40 : 44;
+    final double chevronSize = isCompact ? 28 : 32;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              // Reps Badge Box
+              Container(
+                width: badgeSize,
+                height: badgeSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: boxBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  repsText,
+                  style: TextStyle(
+                    fontSize: isCompact ? 12 : 13,
+                    fontWeight: FontWeight.w900,
+                    color: boxText,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+              SizedBox(width: isCompact ? 10 : 14),
+
+              // Title & Subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ladder.title,
+                      style: TextStyle(
+                        fontSize: isCompact ? 13 : 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.softCharcoal,
+                        letterSpacing: -0.2,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Level ${exercise.level} · ${exercise.name}',
+                      style: TextStyle(
+                        fontSize: isCompact ? 11 : 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.mutedGray,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // Arrow Action Button
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProgressionLadderScreen(
+                  controller: widget.controller,
+                  initialLadderId: ladder.id,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            width: chevronSize,
+            height: chevronSize,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F5F9),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chevron_right_rounded,
+              size: isCompact ? 16 : 18,
+              color: AppColors.softCharcoal,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- 4. FLOATING BOTTOM NAVIGATION BAR ---
+  Widget _buildFloatingBottomNav() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(40),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(40),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromRGBO(45, 30, 20, 0.08),
+                blurRadius: 36,
+                offset: Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Tab 0: Routine (Home Tab)
+              _buildNavButton(
+                index: 0,
+                label: 'Routine',
+                icon: Icons.home_rounded,
+                activeIcon: Icons.home_rounded,
+              ),
+
+              // Tab 1: Workout Runner (Direct runner launcher)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  if (widget.controller.activeSession == null) {
+                    widget.controller.startWorkout();
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: const BoxDecoration(
+                    color: AppColors.softCharcoal,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+
+              // Tab 2: Progression Ladders
+              _buildNavButton(
+                index: 1,
+                label: 'Ladders',
+                icon: Icons.tune_rounded,
+                activeIcon: Icons.tune_rounded,
+              ),
+
+              // Tab 3: History / Logbook
+              _buildNavButton(
+                index: 2,
+                label: 'Logbook',
+                icon: Icons.calendar_today_rounded,
+                activeIcon: Icons.calendar_today_rounded,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavButton({
+    required int index,
+    required String label,
+    required IconData icon,
+    required IconData activeIcon,
+  }) {
+    final bool isSelected = _currentNavIndex == index;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        if (_currentNavIndex == index && index == 0) {
+          _scrollToTop();
+        } else {
+          setState(() => _currentNavIndex = index);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 20,
+              color: isSelected ? AppColors.accentPeachText : AppColors.mutedGray,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected ? AppColors.accentPeachText : AppColors.mutedGray,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

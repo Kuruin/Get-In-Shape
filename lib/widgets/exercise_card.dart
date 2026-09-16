@@ -21,88 +21,102 @@ class ExerciseCard extends StatelessWidget {
   void _showDetailsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      enableDrag: true,
+      showDragHandle: true,
+      useSafeArea: true,
       backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        exercise.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ladderTitle.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            exercise.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   exercise.description,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
-                    height: 1.4,
+                    height: 1.45,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 const Text(
-                  'KEY FORM CUES',
+                  'FORM EXECUTION CUES',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                    letterSpacing: 1.0,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.accentGold,
+                    letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 ...exercise.formCues.map((cue) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 5.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.check_circle_outline, size: 16, color: AppColors.primary),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.check_rounded, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           cue,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 13.5,
                             color: AppColors.textPrimary,
+                            height: 1.35,
                           ),
                         ),
                       ),
                     ],
                   ),
                 )),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 if (onSwitchProgression != null)
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: const Icon(Icons.swap_vert_rounded),
+                      icon: const Icon(Icons.swap_vert_rounded, size: 18),
                       label: const Text('Change Progression Level'),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -112,43 +126,43 @@ class ExerciseCard extends StatelessWidget {
                   ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.surfaceBorder),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.surfaceBorder),
                 ),
                 child: Text(
-                  'LVL ${exercise.level}/$totalLevels',
+                  'LVL ${exercise.level} OF $totalLevels',
                   style: const TextStyle(
-                    color: AppColors.accentCyan,
-                    fontSize: 11,
+                    color: AppColors.accentGold,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   ladderTitle,
@@ -156,41 +170,50 @@ class ExerciseCard extends StatelessWidget {
                     color: AppColors.textMuted,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.info_outline, size: 20, color: AppColors.textSecondary),
-                tooltip: 'Exercise Technique & Cues',
-                onPressed: () => _showDetailsDialog(context),
+              InkWell(
+                onTap: () => _showDetailsDialog(context),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textSecondary),
+                ),
               ),
-              ?trailing,
+              if (trailing != null) ...[
+                const SizedBox(width: 6),
+                trailing!,
+              ],
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
             exercise.name,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
-              letterSpacing: -0.3,
+              letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.repeat_rounded, size: 14, color: AppColors.primary),
-              const SizedBox(width: 4),
+              const Icon(Icons.adjust_rounded, size: 14, color: AppColors.primary),
+              const SizedBox(width: 5),
               Text(
                 'Target: ${exercise.repRange}',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,
+                  letterSpacing: -0.1,
                 ),
               ),
             ],
