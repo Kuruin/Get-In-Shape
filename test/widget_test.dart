@@ -5,6 +5,7 @@ import 'package:workout_app_1/data/bwf_routine_data.dart';
 import 'package:workout_app_1/services/storage_service.dart';
 import 'package:workout_app_1/controllers/workout_controller.dart';
 import 'package:workout_app_1/screens/active_workout_screen.dart';
+import 'package:workout_app_1/screens/progression_ladder_screen.dart';
 import 'package:workout_app_1/main.dart';
 
 void main() {
@@ -97,8 +98,17 @@ void main() {
     expect(find.text('Recommended\nRoutine'), findsOneWidget);
     expect(find.text('Start Workout'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Workout'), findsOneWidget);
+    expect(find.text('Progressions'), findsOneWidget);
     expect(find.text('History'), findsOneWidget);
+
+    // Tap Progressions tab to verify Roadmap design loads
+    await tester.tap(find.text('Progressions'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Roadmap'), findsOneWidget);
+    expect(find.text('STATUS'), findsOneWidget);
+    expect(find.text('TARGET UNLOCK'), findsOneWidget);
+    expect(find.text('DOCTRINE MET'), findsOneWidget);
   });
 
   testWidgets('ActiveWorkoutScreen renders workout components, default 0 reps, and pair switcher',
@@ -157,4 +167,23 @@ void main() {
 
     await controller.discardWorkout();
   });
+
+  testWidgets('ProgressionLadderScreen renders roadmap, bento cluster, chips, and milestone deck', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await StorageService.init();
+    final controller = WorkoutController(storage);
+
+    await tester.pumpWidget(MaterialApp(
+      home: ProgressionLadderScreen(controller: controller),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Roadmap'), findsOneWidget);
+    expect(find.text('RECOMMENDED ROUTINE'), findsOneWidget);
+    expect(find.text('STATUS'), findsOneWidget);
+    expect(find.text('PRIMARY PAIRS'), findsOneWidget);
+    expect(find.text('TARGET UNLOCK'), findsOneWidget);
+    expect(find.textContaining('Pull-up'), findsAtLeast(1));
+  });
 }
+

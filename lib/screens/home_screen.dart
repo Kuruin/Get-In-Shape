@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildHomeTab(context),
                   ProgressionLadderScreen(
                     controller: widget.controller,
-                    title: 'Workout & Progressions',
+                    title: 'Roadmap',
                   ),
                   HistoryScreen(controller: widget.controller),
                 ],
@@ -740,14 +740,36 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'VOLUME',
-            style: TextStyle(
-              fontSize: isCompact ? 9.5 : 10.5,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mutedGray,
-              letterSpacing: 1.0,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'VOLUME',
+                  style: TextStyle(
+                    fontSize: isCompact ? 9.5 : 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mutedGray,
+                    letterSpacing: 1.0,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: isCompact ? 22 : 24,
+                height: isCompact ? 22 : 24,
+                decoration: const BoxDecoration(
+                  color: AppColors.accentYellow,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.fitness_center_rounded,
+                  size: isCompact ? 13 : 14,
+                  color: AppColors.accentYellowText,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: isCompact ? 6 : 8),
           Text(
@@ -1130,12 +1152,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 activeIcon: Icons.home_rounded,
               ),
 
-              // Tab 1: Workout
+              // Tab 1: Progressions
               _buildNavButton(
                 index: 1,
-                label: 'Workout',
-                icon: Icons.fitness_center_outlined,
-                activeIcon: Icons.fitness_center_rounded,
+                label: 'Progressions',
+                icon: Icons.alt_route_rounded,
+                activeIcon: Icons.alt_route_rounded,
               ),
 
               // Tab 2: History

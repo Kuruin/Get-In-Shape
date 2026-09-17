@@ -70,7 +70,7 @@ class BwfRoutineData {
     id: 'ladder_pullup',
     title: 'Pull-up Progression',
     movementType: 'Vertical Pull',
-    pairCategory: 'First Pair (with Squat)',
+    pairCategory: 'First Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
@@ -140,7 +140,7 @@ class BwfRoutineData {
     id: 'ladder_squat',
     title: 'Squat Progression',
     movementType: 'Quad Dominant Leg',
-    pairCategory: 'First Pair (with Pull-up)',
+    pairCategory: 'First Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
@@ -223,7 +223,7 @@ class BwfRoutineData {
     id: 'ladder_dip',
     title: 'Dip Progression',
     movementType: 'Vertical Push',
-    pairCategory: 'Second Pair (with Hinge)',
+    pairCategory: 'Second Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
@@ -282,7 +282,7 @@ class BwfRoutineData {
     id: 'ladder_hinge',
     title: 'Hinge Progression',
     movementType: 'Posterior Chain / Hamstrings',
-    pairCategory: 'Second Pair (with Dip)',
+    pairCategory: 'Second Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
@@ -353,7 +353,7 @@ class BwfRoutineData {
     id: 'ladder_row',
     title: 'Row Progression',
     movementType: 'Horizontal Pull',
-    pairCategory: 'Third Pair (with Push-up)',
+    pairCategory: 'Third Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
@@ -411,7 +411,7 @@ class BwfRoutineData {
     id: 'ladder_pushup',
     title: 'Push-up Progression',
     movementType: 'Horizontal Push',
-    pairCategory: 'Third Pair (with Row)',
+    pairCategory: 'Third Pair',
     defaultRestSeconds: 90,
     exercises: [
       Exercise(
