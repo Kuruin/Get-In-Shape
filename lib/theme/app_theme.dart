@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Rich Warm Obsidian & Espresso palette
@@ -9,35 +8,41 @@ class AppColors {
   static const Color surfaceBorder = Color(0xFF38332C);
   static const Color surfaceHighlight = Color(0xFF484138);
 
-  // Warm Amber & Terracotta Brand Tones
-  static const Color primary = Color(0xFFE88A3C); // Warm Terracotta Amber
-  static const Color primaryLight = Color(0xFFF6A962);
-  static const Color primaryDark = Color(0xFFC76D25);
-  static const Color primaryContainer = Color(0xFF2F1D11);
-  static const Color onPrimary = Color(0xFF190C03);
+  // Obsidian & Neutral Brand Tones (discarded orange)
+  static const Color primary = Color(0xFF1E232A); // Deep Obsidian Slate
+  static const Color primaryLight = Color(0xFF333A44);
+  static const Color primaryDark = Color(0xFF111827);
+  static const Color primaryContainer = Color(0xFFF5F2EB);
+  static const Color onPrimary = Color(0xFFFFFFFF);
 
   // Harmonious Warm Accents
-  static const Color accentGold = Color(0xFFE5B567);
-  static const Color accentRose = Color(0xFFE07A5F);
+  static const Color accentGold = Color(0xFFD4A359);
+  static const Color accentRose = Color(0xFF8A8F98);
   static const Color accentOlive = Color(0xFF81B29A);
-  static const Color accentRed = Color(0xFFE76F51);
+  static const Color accentRed = Color(0xFFDC2626);
 
   // Warm Humanized Typography
   static const Color textPrimary = Color(0xFFFDFBF7); // Warm Ivory / Cream
   static const Color textSecondary = Color(0xFFB8B0A7); // Warm Stone Grey
   static const Color textMuted = Color(0xFF827A72); // Warm Subtle Grey
 
-  // Warm Canvas & Sand Palette (from home.html)
-  static const Color canvas = Color(0xFFF5F2EE);
+  // Warm Canvas & Sand Palette (from home.html & workout.html)
+  static const Color canvas = Color(0xFFF7F4EE);
   static const Color sandCard = Color(0xFFFFFFFF);
+  static const Color surfaceWhite = Color(0xFFFFFFFF);
+  static const Color borderSubtle = Color(0xFFE5E1D8);
+  static const Color inset = Color(0xFFF5F2EB);
+  static const Color actionDark = Color(0xFF1E232A);
+  static const Color carbon = Color(0xFF111827);
+  static const Color stone = Color(0xFF57534E);
+  static const Color trackRing = Color(0xFFEDE8DE);
   static const Color softCharcoal = Color(0xFF212529);
   static const Color darkButton = Color(0xFF181D23);
   static const Color mutedGray = Color(0xFF8A8F98);
-  static const Color borderSubtle = Color(0xFFF0ECE6);
 
-  static const Color accentPeach = Color(0xFFF2A285);
-  static const Color accentPeachLight = Color(0xFFFDEEE9);
-  static const Color accentPeachText = Color(0xFFFF5733);
+  static const Color accentPeach = Color(0xFF1E232A);
+  static const Color accentPeachLight = Color(0xFFF5F2EB);
+  static const Color accentPeachText = Color(0xFF1E232A);
 
   static const Color accentSky = Color(0xFFBDDFEC);
   static const Color accentSkyDark = Color(0xFF3A7D99);
@@ -55,7 +60,7 @@ class AppColors {
 class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: 'Manrope',
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
       primaryColor: AppColors.primary,
@@ -154,52 +159,50 @@ class AppTheme {
           );
         }),
       ),
-      textTheme: GoogleFonts.interTextTheme(
-        const TextTheme(
-          headlineLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 30,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.8,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-          headlineMedium: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-          titleLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-          titleMedium: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-          bodyLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            height: 1.45,
-          ),
-          bodyMedium: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-            height: 1.45,
-          ),
-          labelLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 30,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.8,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+        headlineMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+        titleLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.3,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+        titleMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          height: 1.45,
+        ),
+        bodyMedium: TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 13,
+          fontWeight: FontWeight.w400,
+          height: 1.45,
+        ),
+        labelLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
       ),
     );

@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../data/bwf_routine_data.dart';
 import '../controllers/workout_controller.dart';
+import 'active_workout_screen.dart';
 
 class ProgressionLadderScreen extends StatefulWidget {
   final WorkoutController controller;
   final String? initialLadderId;
+  final String? title;
 
   const ProgressionLadderScreen({
     super.key,
     required this.controller,
     this.initialLadderId,
+    this.title,
   });
 
   @override
@@ -28,13 +31,46 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final ladder = BwfRoutineData.getLadder(_selectedLadderId);
-    final activeExercise = widget.controller.getSelectedExerciseForLadder(_selectedLadderId);
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        final ladder = BwfRoutineData.getLadder(_selectedLadderId);
+        final activeExercise = widget.controller.getSelectedExerciseForLadder(_selectedLadderId);
+        final bool isSessionActive = widget.controller.activeSession != null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Progression Ladders'),
-      ),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(widget.title ?? 'Progression Ladders'),
+            actions: [
+              TextButton.icon(
+                onPressed: () {
+                  if (!isSessionActive) {
+                    widget.controller.startWorkout();
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  isSessionActive ? Icons.play_circle_fill_rounded : Icons.play_arrow_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                label: Text(
+                  isSessionActive ? 'Resume' : 'Start',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
       body: Column(
         children: [
           // Horizontal selector for the 9 ladders
@@ -348,5 +384,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         ],
       ),
     );
+  },
+);
   }
 }

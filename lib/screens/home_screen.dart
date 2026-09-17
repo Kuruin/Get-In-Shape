@@ -54,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 index: _currentNavIndex,
                 children: [
                   _buildHomeTab(context),
-                  ProgressionLadderScreen(controller: widget.controller),
+                  ProgressionLadderScreen(
+                    controller: widget.controller,
+                    title: 'Workout & Progressions',
+                  ),
                   HistoryScreen(controller: widget.controller),
                 ],
               ),
@@ -944,10 +947,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   exercise: exercises[i],
                   repsText: '3×8',
                   boxBg: i == 0
-                      ? const Color(0xFFFAEBE6)
+                      ? const Color(0xFFF5F2EB)
                       : (i == 1 ? const Color(0xFFEAF4FA) : const Color(0xFFE4F4E8)),
                   boxText: i == 0
-                      ? const Color(0xFFFF5733)
+                      ? AppColors.actionDark
                       : (i == 1 ? const Color(0xFF2C7A9C) : const Color(0xFF2E7D46)),
                   isCompact: isCompact,
                 ),
@@ -1103,7 +1106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(40),
@@ -1117,59 +1120,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // Tab 0: Routine (Home Tab)
+              // Tab 0: Home
               _buildNavButton(
                 index: 0,
-                label: 'Routine',
-                icon: Icons.home_rounded,
+                label: 'Home',
+                icon: Icons.home_outlined,
                 activeIcon: Icons.home_rounded,
               ),
 
-              // Tab 1: Workout Runner (Direct runner launcher)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  if (widget.controller.activeSession == null) {
-                    widget.controller.startWorkout();
-                  }
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: const BoxDecoration(
-                    color: AppColors.softCharcoal,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-
-              // Tab 2: Progression Ladders
+              // Tab 1: Workout
               _buildNavButton(
                 index: 1,
-                label: 'Ladders',
-                icon: Icons.tune_rounded,
-                activeIcon: Icons.tune_rounded,
+                label: 'Workout',
+                icon: Icons.fitness_center_outlined,
+                activeIcon: Icons.fitness_center_rounded,
               ),
 
-              // Tab 3: History / Logbook
+              // Tab 2: History
               _buildNavButton(
                 index: 2,
-                label: 'Logbook',
-                icon: Icons.calendar_today_rounded,
+                label: 'History',
+                icon: Icons.calendar_today_outlined,
                 activeIcon: Icons.calendar_today_rounded,
               ),
             ],
@@ -1198,21 +1171,21 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              size: 20,
+              size: 22,
               color: isSelected ? AppColors.accentPeachText : AppColors.mutedGray,
             ),
             const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 color: isSelected ? AppColors.accentPeachText : AppColors.mutedGray,
                 letterSpacing: -0.2,

@@ -113,7 +113,7 @@ class WorkoutController extends ChangeNotifier {
           exerciseName: exercise.name,
           ladderId: ladder.id,
           setIndex: i,
-          reps: exercise.minTargetReps,
+          reps: 0,
         ));
       }
     }
