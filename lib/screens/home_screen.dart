@@ -6,6 +6,8 @@ import '../models/exercise.dart';
 import '../theme/app_theme.dart';
 import '../data/bwf_routine_data.dart';
 import '../controllers/workout_controller.dart';
+import '../utils/formatters.dart';
+import '../widgets/version_indicator.dart';
 import 'active_workout_screen.dart';
 import 'progression_ladder_screen.dart';
 import 'history_screen.dart';
@@ -23,6 +25,133 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   int _selectedPairIndex = 0; // 0: Pair 1, 1: Pair 2, 2: Pair 3, 3: Core Triplet
   final ScrollController _homeScrollController = ScrollController();
+  final GlobalKey<ProgressionLadderScreenState> _progressionLadderKey = GlobalKey();
+  final GlobalKey<HistoryScreenState> _historyKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkChangelog());
+  }
+
+  void _checkChangelog() {
+    final storage = widget.controller.storage;
+    final lastSeen = storage.getLastSeenVersion();
+    const currentVersion = VersionIndicator.version;
+    if (lastSeen != currentVersion) {
+      storage.setLastSeenVersion(currentVersion);
+      _showChangelogModal();
+    }
+  }
+
+  void _showChangelogModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.stoneBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentMintTint,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.bolt_rounded, color: AppColors.obsidian, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      "What's New in BWF Tracker",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.obsidian,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildChangelogItem('Warm Tactical Aesthetic', 'Crafted high-contrast, distraction-free surfaces inspired by athletic discipline.'),
+                _buildChangelogItem('Alternating Routine Pairs', 'Authentic BWF paired sets with automatic 90s rest and progression switching.'),
+                _buildChangelogItem('Offline Persistence & Reddit Export', 'Zero data loss with local drafts and one-tap formatted Reddit markdown logs.'),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Got it, Let's Train"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildChangelogItem(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 4, right: 10),
+            child: Icon(Icons.check_circle_rounded, color: AppColors.accentMint, size: 16),
+          ),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 13.5, color: AppColors.stone, height: 1.4, fontFamily: 'Manrope'),
+                children: [
+                  TextSpan(text: '$title: ', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.obsidian)),
+                  TextSpan(text: description),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getTabTitle(int index) {
+    switch (index) {
+      case 0:
+        return 'Home · BWF Routine';
+      case 1:
+        return 'Roadmap · BWF Routine';
+      case 2:
+        return 'History · BWF Routine';
+      default:
+        return 'BWF Recommended Routine';
+    }
+  }
 
   @override
   void dispose() {
@@ -42,49 +171,114 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.controller,
-      builder: (context, _) {
-        return Scaffold(
-          backgroundColor: AppColors.canvas,
-          body: Stack(
-            children: [
-              // Main Tab Content
-              IndexedStack(
-                index: _currentNavIndex,
+    return Title(
+      title: _getTabTitle(_currentNavIndex),
+      color: AppColors.obsidian,
+      child: PrimaryScrollController(
+        controller: _homeScrollController,
+        child: ListenableBuilder(
+          listenable: widget.controller,
+          builder: (context, _) {
+            return Scaffold(
+              backgroundColor: AppColors.canvas,
+              body: Stack(
                 children: [
-                  _buildHomeTab(context),
-                  ProgressionLadderScreen(
-                    controller: widget.controller,
-                    title: 'Roadmap',
+                  // Main Tab Content
+                  IndexedStack(
+                    index: _currentNavIndex,
+                    children: [
+                      _buildHomeTab(context),
+                      ProgressionLadderScreen(
+                        key: _progressionLadderKey,
+                        controller: widget.controller,
+                        title: 'Roadmap',
+                      ),
+                      HistoryScreen(
+                        key: _historyKey,
+                        controller: widget.controller,
+                      ),
+                    ],
                   ),
-                  HistoryScreen(controller: widget.controller),
-                ],
-              ),
 
-              // Floating Bottom Navigation Bar (Centered & Constrained)
-              Positioned(
-                bottom: 16,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  top: false,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildFloatingBottomNav(),
+                  // Progressive dissolve gradient overlay below status bar
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: MediaQuery.paddingOf(context).top + 16,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppColors.canvas,
+                              AppColors.canvas.withValues(alpha: 0.8),
+                              AppColors.canvas.withValues(alpha: 0.0),
+                            ],
+                            stops: const [0.0, 0.6, 1.0],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+
+                  // Progressive dissolve gradient overlay & backdrop blur behind bottom navigation
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 104 + MediaQuery.viewPaddingOf(context).bottom,
+                    child: IgnorePointer(
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppColors.canvas.withValues(alpha: 0.0),
+                                  AppColors.canvas.withValues(alpha: 0.5),
+                                  AppColors.canvas.withValues(alpha: 0.9),
+                                  AppColors.canvas,
+                                ],
+                                stops: const [0.0, 0.35, 0.75, 1.0],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Floating Bottom Navigation Bar (Centered & Constrained)
+                  Positioned(
+                    bottom: 16,
+                    left: 0,
+                    right: 0,
+                    child: SafeArea(
+                      top: false,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _buildFloatingBottomNav(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -121,36 +315,39 @@ class _HomeScreenState extends State<HomeScreen> {
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
-            child: SingleChildScrollView(
+            child: Scrollbar(
               controller: _homeScrollController,
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                MediaQuery.paddingOf(context).top + (isCompact ? 10 : 14),
-                horizontalPadding,
-                116 + MediaQuery.viewPaddingOf(context).bottom,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // User Header
-                  _buildUserHeader(context, isCompact),
-                  SizedBox(height: verticalSpacing),
+              child: SingleChildScrollView(
+                controller: _homeScrollController,
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  MediaQuery.paddingOf(context).top + (isCompact ? 10 : 14),
+                  horizontalPadding,
+                  116 + MediaQuery.viewPaddingOf(context).bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // User Header
+                    _buildUserHeader(context, isCompact),
+                    SizedBox(height: verticalSpacing),
 
-                  // Date & Routine Subheader
-                  _buildDateSubheader(todayDateStr, isCompact),
-                  SizedBox(height: verticalSpacing),
+                    // Date & Routine Subheader
+                    _buildDateSubheader(todayDateStr, isCompact),
+                    SizedBox(height: verticalSpacing),
 
-                  // Hero Challenge Banner
-                  _buildHeroCard(context, activeDraft, progressPercent, isCompact),
-                  SizedBox(height: isCompact ? 18 : 24),
+                    // Hero Challenge Banner
+                    _buildHeroCard(context, activeDraft, progressPercent, isCompact),
+                    SizedBox(height: isCompact ? 18 : 24),
 
-                  // Readiness & Metrics Grid
-                  _buildReadinessMetrics(streakDays, totalReps, isCompact, isWide),
-                  SizedBox(height: isCompact ? 18 : 24),
+                    // Readiness & Metrics Grid
+                    _buildReadinessMetrics(streakDays, totalReps, isCompact, isWide),
+                    SizedBox(height: isCompact ? 18 : 24),
 
-                  // Current Routine Pairs
-                  _buildRoutinePairsSection(context, isCompact),
-                ],
+                    // Current Routine Pairs
+                    _buildRoutinePairsSection(context, isCompact),
+                  ],
+                ),
               ),
             ),
           ),
@@ -775,7 +972,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: isCompact ? 6 : 8),
           Text(
-            totalReps > 0 ? '$totalReps Reps' : '14.2k kg',
+            totalReps > 0 ? '${totalReps.toLocaleString()} Reps' : '14.2k kg',
             style: TextStyle(
               fontSize: isCompact ? 16 : 18,
               fontWeight: FontWeight.w900,
@@ -890,20 +1087,35 @@ class _HomeScreenState extends State<HomeScreen> {
         SizedBox(height: isCompact ? 8 : 10),
 
         // Pairs Carousel / Selector Tabs
-        SizedBox(
-          height: 32,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            children: [
-              _buildPairTab('Pair 1', 0),
-              const SizedBox(width: 8),
-              _buildPairTab('Pair 2', 1),
-              const SizedBox(width: 8),
-              _buildPairTab('Pair 3', 2),
-              const SizedBox(width: 8),
-              _buildPairTab('Core Triplet', 3),
-            ],
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Colors.white,
+                Colors.white,
+                Colors.transparent,
+              ],
+              stops: [0.0, 0.90, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstIn,
+          child: SizedBox(
+            height: 32,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                _buildPairTab('Pair 1', 0),
+                const SizedBox(width: 8),
+                _buildPairTab('Pair 2', 1),
+                const SizedBox(width: 8),
+                _buildPairTab('Pair 3', 2),
+                const SizedBox(width: 8),
+                _buildPairTab('Core Triplet', 3),
+              ],
+            ),
           ),
         ),
         SizedBox(height: isCompact ? 10 : 12),
@@ -1188,8 +1400,14 @@ class _HomeScreenState extends State<HomeScreen> {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         HapticFeedback.selectionClick();
-        if (_currentNavIndex == index && index == 0) {
-          _scrollToTop();
+        if (_currentNavIndex == index) {
+          if (index == 0) {
+            _scrollToTop();
+          } else if (index == 1) {
+            _progressionLadderKey.currentState?.scrollToTop();
+          } else if (index == 2) {
+            _historyKey.currentState?.scrollToTop();
+          }
         } else {
           setState(() => _currentNavIndex = index);
         }

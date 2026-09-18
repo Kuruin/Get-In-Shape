@@ -86,6 +86,7 @@ class AppTheme {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       hoverColor: Colors.transparent,
+      focusColor: Colors.transparent,
       // Text selection matching brand colors
       textSelectionTheme: TextSelectionThemeData(
         selectionColor: AppColors.accentMint.withValues(alpha: 0.35),
@@ -125,6 +126,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
           backgroundColor: AppColors.obsidian,
           foregroundColor: AppColors.onPrimary,
           elevation: 0,
@@ -138,10 +140,13 @@ class AppTheme {
             letterSpacing: -0.2,
             fontFamily: 'Manrope',
           ),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
           foregroundColor: AppColors.obsidian,
           side: const BorderSide(color: AppColors.stoneBorder, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -154,6 +159,8 @@ class AppTheme {
             letterSpacing: -0.1,
             fontFamily: 'Manrope',
           ),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(

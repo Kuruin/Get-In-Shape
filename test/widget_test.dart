@@ -96,6 +96,11 @@ void main() {
     await tester.pumpWidget(BwfWorkoutApp(controller: controller));
     await tester.pumpAndSettle();
 
+    if (find.text("Got it, Let's Train").evaluate().isNotEmpty) {
+      await tester.tap(find.text("Got it, Let's Train"));
+      await tester.pumpAndSettle();
+    }
+
     expect(find.text('Recommended\nRoutine'), findsOneWidget);
     expect(find.text('Start Workout'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);

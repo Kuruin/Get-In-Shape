@@ -7,6 +7,7 @@ class StorageService {
   static const String _keyProgressionLevels = 'bwf_progression_levels';
   static const String _keyWorkoutHistory = 'bwf_workout_history';
   static const String _keyActiveDraft = 'bwf_active_draft';
+  static const String _keyLastSeenVersion = 'bwf_last_seen_version';
 
   final SharedPreferences _prefs;
 
@@ -110,5 +111,14 @@ class StorageService {
 
   Future<void> clearActiveDraft() async {
     await _prefs.remove(_keyActiveDraft);
+  }
+
+  // App Version Tracking
+  String? getLastSeenVersion() {
+    return _prefs.getString(_keyLastSeenVersion);
+  }
+
+  Future<void> setLastSeenVersion(String version) async {
+    await _prefs.setString(_keyLastSeenVersion, version);
   }
 }

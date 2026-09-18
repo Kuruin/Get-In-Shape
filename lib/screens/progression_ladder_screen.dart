@@ -20,16 +20,33 @@ class ProgressionLadderScreen extends StatefulWidget {
   });
 
   @override
-  State<ProgressionLadderScreen> createState() => _ProgressionLadderScreenState();
+  State<ProgressionLadderScreen> createState() => ProgressionLadderScreenState();
 }
 
-class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
+class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
   late String _selectedLadderId;
+  final ScrollController _ladderScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _selectedLadderId = widget.initialLadderId ?? BwfRoutineData.pullupLadder.id;
+  }
+
+  @override
+  void dispose() {
+    _ladderScrollController.dispose();
+    super.dispose();
+  }
+
+  void scrollToTop() {
+    if (_ladderScrollController.hasClients) {
+      _ladderScrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   void _switchProgression(ProgressionLadder ladder, Exercise exercise) async {
@@ -87,32 +104,66 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           backgroundColor: AppColors.canvas,
           body: SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Header Section (Roadmap & Status)
-                  _buildHeaderSection(context, canPop, activeExercise.level),
-                  const SizedBox(height: 16),
+            child: Stack(
+              children: [
+                Scrollbar(
+                  controller: _ladderScrollController,
+                  child: SingleChildScrollView(
+                    controller: _ladderScrollController,
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      12,
+                      20,
+                      110 + MediaQuery.viewPaddingOf(context).bottom,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 1. Header Section (Roadmap & Status)
+                        _buildHeaderSection(context, canPop, activeExercise.level),
+                        const SizedBox(height: 16),
 
-                  // 2. Asymmetric Bento Hero Cluster (Status Gauge + Target Unlock + Doctrine Met)
-                  _buildBentoCluster(
-                    masteryPercent: masteryPercent,
-                    clearedPairsCount: clearedDisplayCount,
-                    activeExercise: activeExercise,
-                    nextUnlockExercise: nextUnlockExercise,
+                        // 2. Asymmetric Bento Hero Cluster (Status Gauge + Target Unlock + Doctrine Met)
+                        _buildBentoCluster(
+                          masteryPercent: masteryPercent,
+                          clearedPairsCount: clearedDisplayCount,
+                          activeExercise: activeExercise,
+                          nextUnlockExercise: nextUnlockExercise,
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 3. Category Filter Chips (Horizontal Navigation)
+                        _buildCategoryFilterChips(),
+                        const SizedBox(height: 20),
+
+                        // 4. Tactical Milestone Deck for Current Ladder
+                        _buildMilestoneDeck(currentLadder, activeExercise),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 18),
-
-                  // 3. Category Filter Chips (Horizontal Navigation)
-                  _buildCategoryFilterChips(),
-                  const SizedBox(height: 20),
-
-                  // 4. Tactical Milestone Deck for Current Ladder
-                  _buildMilestoneDeck(currentLadder, activeExercise),
-                ],
-              ),
+                ),
+                // Progressive fade under status bar
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 16,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.canvas,
+                            AppColors.canvas.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -608,54 +659,75 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
 
     return SizedBox(
       height: 38,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: ladders.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final l = ladders[index];
-          final bool isSelected = l.id == _selectedLadderId;
-
-          final String chipLabel = l.title.replaceAll(' Progression', '');
-
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              setState(() => _selectedLadderId = l.id);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.actionDark : AppColors.surfaceWhite,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? AppColors.actionDark : AppColors.borderSubtle,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Text(
-                chipLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.stone,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-          );
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Colors.white, Colors.white, Colors.transparent],
+            stops: [0.0, 0.90, 1.0],
+          ).createShader(bounds);
         },
+        blendMode: BlendMode.dstIn,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: ladders.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final l = ladders[index];
+            final bool isSelected = l.id == _selectedLadderId;
+
+            final String chipLabel = l.title.replaceAll(' Progression', '');
+
+            return Builder(
+              builder: (chipContext) {
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Scrollable.ensureVisible(
+                      chipContext,
+                      alignment: 0.5,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                    );
+                    setState(() => _selectedLadderId = l.id);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.actionDark : AppColors.surfaceWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? AppColors.actionDark : AppColors.borderSubtle,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      chipLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? Colors.white : AppColors.stone,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

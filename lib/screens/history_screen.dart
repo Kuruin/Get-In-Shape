@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../models/workout_session.dart';
 import '../theme/app_theme.dart';
 import '../controllers/workout_controller.dart';
+import '../utils/formatters.dart';
+import '../widgets/version_indicator.dart';
 
 typedef _HColors = AppColors;
 
@@ -15,14 +17,15 @@ class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key, required this.controller});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  State<HistoryScreen> createState() => HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class HistoryScreenState extends State<HistoryScreen> {
   DateTime _selectedMonth = DateTime(2024, 10);
   final Set<String> _expandedSessionIds = {'session_oct_25'};
   bool _copiedReddit = false;
   Timer? _copyResetTimer;
+  final ScrollController historyScrollController = ScrollController();
 
   @override
   void initState() {
@@ -33,8 +36,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
+    historyScrollController.dispose();
     _copyResetTimer?.cancel();
     super.dispose();
+  }
+
+  void scrollToTop() {
+    if (historyScrollController.hasClients) {
+      historyScrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   void _toggleAccordion(String id) {
@@ -63,8 +77,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final buffer = StringBuffer();
     buffer.writeln('**BWF Recommended Routine Log - $dateStr**');
     buffer.writeln('- **Duration**: ${durationMin > 0 ? '$durationMin mins' : '45 mins'}');
-    buffer.writeln('- **Total Reps**: ${session.totalReps > 0 ? session.totalReps : 216}');
-    buffer.writeln('- **Sets Completed**: ${session.completedSetCount > 0 ? session.completedSetCount : 27}');
+    buffer.writeln('- **Total Reps**: ${session.totalReps > 0 ? session.totalReps.toLocaleString() : (216).toLocaleString()}');
+    buffer.writeln('- **Sets Completed**: ${session.completedSetCount > 0 ? session.completedSetCount.toLocaleString() : (27).toLocaleString()}');
     buffer.writeln('');
     buffer.writeln('### Exercises & Progressions');
 
@@ -143,6 +157,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _showMonthPickerSheet() {
     showModalBottomSheet(
       context: context,
+      enableDrag: true,
       backgroundColor: _HColors.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -196,6 +211,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ? const Icon(Icons.check_rounded, color: _HColors.accentMint, size: 20)
                       : null,
                   onTap: () {
+                    HapticFeedback.selectionClick();
                     setState(() {
                       _selectedMonth = m;
                     });
@@ -227,6 +243,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           initialChildSize: 0.78,
           minChildSize: 0.45,
           maxChildSize: 0.96,
+          snap: true,
+          snapSizes: const [0.45, 0.78, 0.96],
           expand: false,
           builder: (_, scrollController) {
             return Padding(
@@ -294,7 +312,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: _detailCapsule(
                           icon: Icons.repeat_rounded,
                           label: 'Total Reps',
-                          value: '${session.totalReps > 0 ? session.totalReps : 216}',
+                          value: session.totalReps > 0 ? session.totalReps.toLocaleString() : (216).toLocaleString(),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -514,42 +532,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
           body: Stack(
             children: [
               // Scrollable Body
-              SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  MediaQuery.paddingOf(context).top + 68,
-                  16,
-                  120 + MediaQuery.viewPaddingOf(context).bottom,
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 540),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // 1. Floating Horizontal Weekly Consistency Chip Bar
-                        _buildWeeklyConsistencyBar(),
-                        const SizedBox(height: 14),
+              Scrollbar(
+                controller: historyScrollController,
+                child: SingleChildScrollView(
+                  controller: historyScrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    MediaQuery.paddingOf(context).top + 68,
+                    16,
+                    120 + MediaQuery.viewPaddingOf(context).bottom,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 540),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 1. Floating Horizontal Weekly Consistency Chip Bar
+                          _buildWeeklyConsistencyBar(),
+                          const SizedBox(height: 14),
 
-                        // 2. Monthly Heatmap Card with Bento Header & Dedicated Telemetry Capsule
-                        _buildMonthlyHeatmapCard(realHistory),
-                        const SizedBox(height: 14),
+                          // 2. Monthly Heatmap Card with Bento Header & Dedicated Telemetry Capsule
+                          _buildMonthlyHeatmapCard(realHistory),
+                          const SizedBox(height: 14),
 
-                        // 3. Dedicated Progression Bar Mini-Card (Strict Reps Load)
-                        _buildStrictRepsLoadCard(),
-                        const SizedBox(height: 14),
+                          // 3. Dedicated Progression Bar Mini-Card (Strict Reps Load)
+                          _buildStrictRepsLoadCard(),
+                          const SizedBox(height: 14),
 
-                        // 4. Peak PR Achieved Callout Banner
-                        _buildPeakPrBanner(),
-                        const SizedBox(height: 18),
+                          // 4. Peak PR Achieved Callout Banner
+                          _buildPeakPrBanner(),
+                          const SizedBox(height: 18),
 
-                        // 5. Chronological Timeline Stream: Recent Workout Logs
-                        _buildTimelineStream(realHistory),
-                        const SizedBox(height: 16),
+                          // 5. Chronological Timeline Stream: Recent Workout Logs
+                          _buildTimelineStream(realHistory),
+                          const SizedBox(height: 16),
 
-                        // 6. Reddit Markdown Export Banner
-                        _buildRedditExportBanner(realHistory),
-                      ],
+                          // 6. Reddit Markdown Export Banner
+                          _buildRedditExportBanner(realHistory),
+                          const SizedBox(height: 24),
+
+                          // 7. Version Indicator
+                          const Center(child: VersionIndicator()),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -670,6 +696,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 children: [
                   // Month Filter Dropdown
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: _showMonthPickerSheet,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -710,6 +737,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                   // Calendar Button
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: _showMonthPickerSheet,
                     child: Container(
                       width: 32,
@@ -1332,6 +1360,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       fontWeight: FontWeight.w800,
                       color: _HColors.obsidian,
                       letterSpacing: -0.5,
+                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1554,6 +1583,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           // Celebrate Action
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.heavyImpact();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -1905,6 +1935,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           ),
                                         ),
                                         GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
                                           onTap: () {
                                             if (sessionObj != null) {
                                               _showSessionDetails(sessionObj);
@@ -2101,6 +2132,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           const SizedBox.shrink(),
 
                                         GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
                                           onTap: () {
                                             if (sessionObj != null) {
                                               _showSessionDetails(sessionObj);
@@ -2216,6 +2248,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: _HColors.stoneMuted,
+                fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
           ],
@@ -2326,6 +2359,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           // Copy Button
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => _copyRedditMarkdown(sessionToExport),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),

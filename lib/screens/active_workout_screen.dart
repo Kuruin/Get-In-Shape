@@ -236,23 +236,41 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: SizedBox(
         height: 42,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: stages.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final item = stages[index];
-            final isSelected = currentStage == item.$1;
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (!isSelected) {
-                  HapticFeedback.selectionClick();
-                  setState(() => _selectedPairSubIndex = 0);
-                  widget.controller.setStage(item.$1);
-                }
-              },
-              child: AnimatedContainer(
+        child: ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Colors.white, Colors.white, Colors.transparent],
+              stops: [0.0, 0.90, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstIn,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: stages.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final item = stages[index];
+              final isSelected = currentStage == item.$1;
+              return Builder(
+                builder: (itemContext) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (!isSelected) {
+                        HapticFeedback.selectionClick();
+                        Scrollable.ensureVisible(
+                          itemContext,
+                          alignment: 0.5,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                        );
+                        setState(() => _selectedPairSubIndex = 0);
+                        widget.controller.setStage(item.$1);
+                      }
+                    },
+                    child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
@@ -296,9 +314,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               ),
             );
           },
-        ),
-      ),
-    );
+        );
+      },
+    ),
+  ),
+),
+);
   }
 
   bool _isPairCompleted(String ladderAId, String ladderBId) {
@@ -389,7 +410,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     final bool isPairAllDone = isExerciseAllDone && otherSets.every((s) => s.isCompleted);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + MediaQuery.viewPaddingOf(context).bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1841,7 +1862,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     final totalReps = session.totalReps;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 32 + MediaQuery.viewPaddingOf(context).bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

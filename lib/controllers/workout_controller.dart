@@ -43,6 +43,7 @@ class WorkoutController extends ChangeNotifier {
   List<WorkoutSession> get history => _history;
   WorkoutSession? get activeSession => _activeSession;
   WorkoutStage get currentStage => _currentStage;
+  StorageService get storage => _storage;
   int get activePairStepIndex => _activePairStepIndex;
 
   int get restRemainingSeconds => _restRemainingSeconds;
