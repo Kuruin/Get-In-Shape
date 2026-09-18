@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -602,54 +601,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Progressive dissolve gradient overlay & backdrop blur behind bottom navigation
+                  // Docked Full-Width Solid Bottom Navigation Bar (Edge-to-Edge, No Blur)
                   Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: 104 + MediaQuery.viewPaddingOf(context).bottom,
-                    child: IgnorePointer(
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.canvas.withValues(alpha: 0.0),
-                                  AppColors.canvas.withValues(alpha: 0.5),
-                                  AppColors.canvas.withValues(alpha: 0.9),
-                                  AppColors.canvas,
-                                ],
-                                stops: const [0.0, 0.35, 0.75, 1.0],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Floating Bottom Navigation Bar (Centered & Constrained)
-                  Positioned(
-                    bottom: 16,
-                    left: 0,
-                    right: 0,
-                    child: SafeArea(
-                      top: false,
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: _buildFloatingBottomNav(),
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: _buildDockedBottomNav(),
                   ),
                 ],
               ),
@@ -1782,53 +1739,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- 4. FLOATING BOTTOM NAVIGATION BAR ---
-  Widget _buildFloatingBottomNav() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(40),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(45, 30, 20, 0.08),
-                blurRadius: 36,
-                offset: Offset(0, 16),
-              ),
-            ],
+  // --- 4. DOCKED FULL-WIDTH SOLID BOTTOM NAVIGATION BAR (NO BLUR) ---
+  Widget _buildDockedBottomNav() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceCard,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.stoneBorder,
+            width: 1,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // Tab 0: Home
-              _buildNavButton(
-                index: 0,
-                label: 'Home',
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-              ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.04),
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // Tab 0: Home
+                  _buildNavButton(
+                    index: 0,
+                    label: 'Home',
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home_rounded,
+                  ),
 
-              // Tab 1: Progressions
-              _buildNavButton(
-                index: 1,
-                label: 'Progressions',
-                icon: Icons.alt_route_rounded,
-                activeIcon: Icons.alt_route_rounded,
-              ),
+                  // Tab 1: Progressions
+                  _buildNavButton(
+                    index: 1,
+                    label: 'Progressions',
+                    icon: Icons.alt_route_rounded,
+                    activeIcon: Icons.alt_route_rounded,
+                  ),
 
-              // Tab 2: History
-              _buildNavButton(
-                index: 2,
-                label: 'History',
-                icon: Icons.calendar_today_outlined,
-                activeIcon: Icons.calendar_today_rounded,
+                  // Tab 2: History
+                  _buildNavButton(
+                    index: 2,
+                    label: 'History',
+                    icon: Icons.calendar_today_outlined,
+                    activeIcon: Icons.calendar_today_rounded,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
