@@ -152,7 +152,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                           width: 6,
                           height: 6,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF10B981), // Sage emerald
+                            color: AppColors.accentMint,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -344,7 +344,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         width: 6,
                         height: 6,
                         decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
+                          color: AppColors.accentMint,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -474,7 +474,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                                 width: 6,
                                 height: 6,
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981),
+                                  color: AppColors.accentMint,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -484,7 +484,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                                 style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF10B981),
+                                  color: AppColors.accentMint,
                                   letterSpacing: 0.8,
                                 ),
                               ),
@@ -558,7 +558,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF10B981),
+                                  color: AppColors.accentMint,
                                 ),
                                 children: [
                                   TextSpan(text: '3 × 8 '),
@@ -579,14 +579,14 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                           width: 26,
                           height: 26,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
+                            color: AppColors.accentMintTint,
                             borderRadius: BorderRadius.circular(13),
-                            border: Border.all(color: const Color(0xFFDCFCE7)),
+                            border: Border.all(color: AppColors.accentMintBorder),
                           ),
                           child: const Icon(
                             Icons.check_rounded,
                             size: 15,
-                            color: Color(0xFF10B981),
+                            color: AppColors.accentMint,
                           ),
                         ),
                       ],
@@ -787,29 +787,29 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 Container(
                   width: 22,
                   height: 22,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  decoration: const BoxDecoration(
+                    color: AppColors.accentMintTint,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.check_rounded,
                     size: 14,
-                    color: Color(0xFF10B981),
+                    color: AppColors.accentMint,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
+                    color: AppColors.accentMintTint,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFDCFCE7)),
+                    border: Border.all(color: AppColors.accentMintBorder),
                   ),
                   child: const Text(
                     'Passed',
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF10B981),
+                      color: AppColors.accentMint,
                     ),
                   ),
                 ),
@@ -871,14 +871,14 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
             Container(
               width: 24,
               height: 24,
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.15),
+              decoration: const BoxDecoration(
+                color: AppColors.accentMintTint,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.check_rounded,
                 size: 15,
-                color: Color(0xFF10B981),
+                color: AppColors.accentMint,
               ),
             ),
             const SizedBox(width: 12),
@@ -998,7 +998,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
+                            color: AppColors.accentMint,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
@@ -1053,7 +1053,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           Container(
             padding: const EdgeInsets.only(top: 10),
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+              border: Border(top: BorderSide(color: AppColors.stoneBorder)),
             ),
             child: Column(
               children: [
@@ -1118,7 +1118,7 @@ class _ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       child: Container(
                         height: 7,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                          color: AppColors.trackRing,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         alignment: Alignment.centerLeft,
@@ -1275,7 +1275,7 @@ class _RoadmapRadialGaugePainter extends CustomPainter {
 
     // Background track ring
     final bgPaint = Paint()
-      ..color = const Color(0xFFF4EFE6)
+      ..color = AppColors.trackRing
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7.5;
 
@@ -1283,7 +1283,7 @@ class _RoadmapRadialGaugePainter extends CustomPainter {
 
     // Active progress arc
     final fgPaint = Paint()
-      ..color = const Color(0xFF1E232A)
+      ..color = AppColors.obsidian
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7.5
       ..strokeCap = StrokeCap.round;

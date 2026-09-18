@@ -278,7 +278,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       Icon(
                         Icons.check_circle_rounded,
                         size: 13,
-                        color: isSelected ? Colors.white : const Color(0xFF10B981),
+                        color: isSelected ? Colors.white : AppColors.accentMint,
                       ),
                       const SizedBox(width: 5),
                     ],
@@ -2041,21 +2041,21 @@ class _RestGaugePainter extends CustomPainter {
 
     // 1. Base Outer Track (#EDE8DE)
     final basePaint = Paint()
-      ..color = const Color(0xFFEDE8DE)
+      ..color = AppColors.trackRing
       ..strokeWidth = 10
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, outerRadius, basePaint);
 
     // 2. Inner Track (#F5F2EB)
     final innerPaint = Paint()
-      ..color = const Color(0xFFF5F2EB)
+      ..color = AppColors.inset
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, innerRadius, innerPaint);
 
     // 3. Inner Decorative Arc (#E5E1D8)
     final decoPaint = Paint()
-      ..color = const Color(0xFFE5E1D8)
+      ..color = AppColors.borderSubtle
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -2070,7 +2070,7 @@ class _RestGaugePainter extends CustomPainter {
     // 4. Active Progress Arc in Obsidian Slate (#1E232A)
     if (progress > 0) {
       final activePaint = Paint()
-        ..color = const Color(0xFF1E232A)
+        ..color = AppColors.obsidian
         ..strokeWidth = 10
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke;

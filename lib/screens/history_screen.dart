@@ -7,22 +7,7 @@ import '../models/workout_session.dart';
 import '../theme/app_theme.dart';
 import '../controllers/workout_controller.dart';
 
-/// Semantic colors tailored precisely from history.html
-class _HColors {
-  static const Color canvas = Color(0xFFF7F4EE);
-  static const Color surfaceCard = Color(0xFFFFFFFF);
-  static const Color accentMint = Color(0xFF10B981);
-  static const Color obsidian = Color(0xFF1E232A);
-  static const Color obsidianDark = Color(0xFF111827);
-  static const Color stoneMuted = Color(0xFF57534E);
-  static const Color stoneLight = Color(0xFFE7E5E4);
-  static const Color stoneBorder = Color(0xFFE5E7EB);
-  static const Color stoneTint = Color(0xFFF5F5F4);
-  static const Color emerald50 = Color(0xFFECFDF5);
-  static const Color emerald100 = Color(0xFFD1FAE5);
-  static const Color emerald200 = Color(0xFFA7F3D0);
-  static const Color emerald700 = Color(0xFF047857);
-}
+typedef _HColors = AppColors;
 
 class HistoryScreen extends StatefulWidget {
   final WorkoutController controller;

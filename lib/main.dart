@@ -57,8 +57,8 @@ class BwfWorkoutApp extends StatelessWidget {
     return MaterialApp(
       title: 'BWF Recommended Routine',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
-      theme: AppTheme.darkTheme.copyWith(
+      themeMode: ThemeMode.light,
+      theme: AppTheme.theme.copyWith(
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: ZoomPageTransitionsBuilder(),
