@@ -354,19 +354,18 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
     required Exercise activeExercise,
     required Exercise? nextUnlockExercise,
   }) {
-    return SizedBox(
-      height: 216,
+    return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Left Card: 5-Col Equivalent (Gauge & Status)
+          // Left Card: Gauge & Status
           Expanded(
             flex: 5,
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.surfaceWhite,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: AppColors.borderSubtle),
                 boxShadow: [
                   BoxShadow(
@@ -401,243 +400,87 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       ),
                     ],
                   ),
-                    const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
-                    // Concentric Radial Mastery Gauge
-                    SizedBox(
-                      width: 78,
-                      height: 78,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CustomPaint(
-                            size: const Size(78, 78),
-                            painter: _RoadmapRadialGaugePainter(
-                              progress: masteryPercent / 100.0,
-                            ),
+                  // Radial Mastery Gauge
+                  SizedBox(
+                    width: 70,
+                    height: 70,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CustomPaint(
+                          size: const Size(70, 70),
+                          painter: _RoadmapRadialGaugePainter(
+                            progress: masteryPercent / 100.0,
                           ),
-                          Text(
-                            '$masteryPercent%',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.carbon,
-                              letterSpacing: -0.5,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
+                        ),
+                        Text(
+                          '$masteryPercent%',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.carbon,
+                            letterSpacing: -0.5,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    Text(
-                      '$masteryPercent% MASTERY',
-                      style: const TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.carbon,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Primary Pairs Cleared Sub-card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.inset,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.borderSubtle),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'PRIMARY PAIRS',
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.stone.withValues(alpha: 0.8),
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          RichText(
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.carbon,
-                              ),
-                              children: [
-                                TextSpan(text: '$clearedPairsCount '),
-                                TextSpan(
-                                  text: '/ 6 Cleared',
-                                  style: TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.stone.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Right Column: 7-Col Equivalent (Target Unlock + Doctrine Met)
-            Expanded(
-              flex: 7,
-              child: Column(
-                children: [
-                  // Target Unlock Card
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceWhite,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.borderSubtle),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.accentMint,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text(
-                                'TARGET UNLOCK',
-                                style: TextStyle(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.accentMint,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            nextUnlockExercise != null ? nextUnlockExercise.name : 'Mastery Peak',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.carbon,
-                              letterSpacing: -0.2,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            nextUnlockExercise != null
-                                ? 'Need 3 × ${activeExercise.maxTargetReps} reps strict to advance progression line.'
-                                : 'Maximum progression unlocked for this movement.',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.stone,
-                              height: 1.25,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Doctrine Met Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceWhite,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.borderSubtle),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'MASTERY',
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.stone.withValues(alpha: 0.7),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Primary Pairs Sub-card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.inset,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'DOCTRINE MET',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.stone.withValues(alpha: 0.8),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.accentMint,
-                                ),
-                                children: [
-                                  TextSpan(text: '3 × 8 '),
-                                  TextSpan(
-                                    text: 'Strict Form',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.stone,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: AppColors.accentMintTint,
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(color: AppColors.accentMintBorder),
+                        Text(
+                          'PAIRS',
+                          style: TextStyle(
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.stone.withValues(alpha: 0.7),
+                            letterSpacing: 0.8,
                           ),
-                          child: const Icon(
-                            Icons.check_rounded,
-                            size: 15,
-                            color: AppColors.accentMint,
+                        ),
+                        const SizedBox(height: 1),
+                        RichText(
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.carbon,
+                            ),
+                            children: [
+                              TextSpan(text: '$clearedPairsCount '),
+                              TextSpan(
+                                text: '/ 6',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.stone.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -646,10 +489,149 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 ],
               ),
             ),
-          ],
-        ),
-      );
+          ),
+          const SizedBox(width: 10),
+
+          // Right Column: Target Unlock + To Advance
+          Expanded(
+            flex: 7,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Target Unlock Card
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.borderSubtle),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: const BoxDecoration(
+                              color: AppColors.accentMint,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          const Text(
+                            'NEXT LEVEL',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.accentMint,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        nextUnlockExercise != null
+                            ? nextUnlockExercise.name
+                            : 'Peak Mastered',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.carbon,
+                          letterSpacing: -0.3,
+                          height: 1.1,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        nextUnlockExercise != null
+                            ? 'Hit 3 × ${activeExercise.maxTargetReps} reps with strict form'
+                            : 'You\'ve unlocked the top of this ladder.',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: AppColors.stone,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // "To Advance" (formerly Doctrine Met) — clear, human label
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: AppColors.inset,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentMintTint,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.accentMintBorder),
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 13,
+                          color: AppColors.accentMint,
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'TO ADVANCE',
+                              style: TextStyle(
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.stone,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            SizedBox(height: 1),
+                            Text(
+                              '3 sets · max reps · strict form',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.carbon,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
 
   // ===========================================================================
   // 3. CATEGORY FILTER CHIPS

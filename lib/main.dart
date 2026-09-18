@@ -4,6 +4,7 @@ import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
 import 'controllers/workout_controller.dart';
 import 'screens/home_screen.dart';
+import 'screens/profile_setup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,7 +93,14 @@ class BwfWorkoutApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         );
       },
-      home: HomeScreen(controller: controller),
+      home: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          return controller.storage.isOnboardingCompleted()
+              ? HomeScreen(controller: controller)
+              : ProfileSetupScreen(controller: controller);
+        },
+      ),
     );
   }
 }

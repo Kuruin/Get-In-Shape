@@ -140,6 +140,384 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showProfileSheet(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final controller = widget.controller;
+    final profile = controller.userProfile;
+    final history = controller.history;
+    final totalReps = history.fold(0, (sum, s) => sum + s.totalReps);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.stoneBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Profile Header
+                Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(
+                        color: AppColors.obsidian,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.person_rounded, color: AppColors.accentMint, size: 28),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  profile?.name ?? 'Athlete',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.obsidian,
+                                    letterSpacing: -0.4,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(sheetCtx);
+                                  _showEditNameDialog(context);
+                                },
+                                child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.stoneMuted),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            profile?.isGuest == true ? 'Guest Athlete (Local Account)' : 'Athlete Profile',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.stoneMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                // Goal info
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.stoneTint,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.stoneBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ACTIVE TRAINING GOAL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.stoneMuted,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile?.fitnessGoal ?? 'Full Body Routine Progression',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.obsidian,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Local device storage badge
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.emerald200),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.shield_outlined, size: 16, color: AppColors.emerald700),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '100% Private · All stats and workouts are stored locally on your device.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.emerald700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Quick stats summary
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceCard,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.stoneBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'LOGGED SESSIONS',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.stoneMuted,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${history.length}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.obsidian,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceCard,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.stoneBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'TOTAL REPS',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.stoneMuted,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              totalReps.toLocaleString(),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.obsidian,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+
+                // Reset All Stats & Data button
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accentRed,
+                      side: const BorderSide(color: AppColors.accentRed, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () {
+                      _confirmResetAllData(context, sheetCtx);
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.delete_forever_rounded, size: 18, color: AppColors.accentRed),
+                        SizedBox(width: 8),
+                        Text(
+                          'Reset All Stats & Data',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.accentRed,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmResetAllData(BuildContext parentContext, BuildContext sheetCtx) {
+    HapticFeedback.heavyImpact();
+    showDialog(
+      context: parentContext,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: AppColors.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.accentRed, size: 24),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Reset All Data?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.obsidian,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'This will permanently delete all workout history, reset progression levels to Level 1, clear active drafts, and reset your profile. You will be returned to the profile setup screen.',
+            style: TextStyle(
+              fontSize: 13.5,
+              color: AppColors.stone,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.stoneMuted, fontWeight: FontWeight.w700)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                Navigator.pop(sheetCtx);
+                await widget.controller.resetAllData();
+              },
+              child: const Text('Reset Everything', style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditNameDialog(BuildContext context) {
+    final textController = TextEditingController(text: widget.controller.userProfile?.name ?? '');
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: AppColors.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Edit Athlete Name',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.obsidian),
+          ),
+          content: TextField(
+            controller: textController,
+            textCapitalization: TextCapitalization.words,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Enter name',
+              filled: true,
+              fillColor: AppColors.stoneTint,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.stoneMuted, fontWeight: FontWeight.w700)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.obsidian,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                final trimmed = textController.text.trim();
+                if (trimmed.isNotEmpty) {
+                  final current = widget.controller.userProfile;
+                  if (current != null) {
+                    await widget.controller.saveProfile(current.copyWith(name: trimmed));
+                  }
+                }
+                if (dialogCtx.mounted) {
+                  Navigator.pop(dialogCtx);
+                }
+              },
+              child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _getTabTitle(int index) {
     switch (index) {
       case 0:
@@ -297,9 +675,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final int progressPercent = totalSets > 0
         ? ((completedSets / totalSets) * 100).round()
-        : (history.isNotEmpty ? 100 : 72);
+        : (history.isNotEmpty ? 100 : 0);
 
-    final int streakDays = history.isNotEmpty ? history.length : 18;
+    final int streakDays = history.isNotEmpty ? history.length : 0;
     final int totalReps = history.fold(0, (sum, s) => sum + s.totalReps);
 
     final String todayDateStr = DateFormat('EEEE, MMM d').format(DateTime.now());
@@ -360,69 +738,108 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildUserHeader(BuildContext context, bool isCompact) {
     final double avatarSize = isCompact ? 40 : 44;
     final double iconBtnSize = isCompact ? 40 : 44;
+    final profile = widget.controller.userProfile;
+    final userName = profile?.name ?? 'Athlete';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            // Avatar Container with Status Dot
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: avatarSize,
-                  height: avatarSize,
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _showProfileSheet(context),
+          child: Row(
+            children: [
+              // Avatar Container with Status Dot
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.stoneTint,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.obsidian,
+                        size: isCompact ? 22 : 24,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: isCompact ? 11 : 12,
+                      height: isCompact ? 11 : 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentMint,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(width: isCompact ? 10 : 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Hello, $userName',
+                        style: TextStyle(
+                          fontSize: isCompact ? 19 : 21,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.obsidian,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppColors.stoneMuted,
                       ),
                     ],
                   ),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.stoneTint,
-                      shape: BoxShape.circle,
+                  if (profile?.isGuest == true)
+                    const Text(
+                      'Guest Account · Tap to view profile',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.stoneMuted,
+                      ),
+                    )
+                  else
+                    const Text(
+                      'Tap to view profile & stats',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.stoneMuted,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.obsidian,
-                      size: isCompact ? 22 : 24,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: isCompact ? 11 : 12,
-                    height: isCompact ? 11 : 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.accentMint,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(width: isCompact ? 10 : 12),
-            Text(
-              'Hello, Athlete',
-              style: TextStyle(
-                fontSize: isCompact ? 20 : 22,
-                fontWeight: FontWeight.w900,
-                color: AppColors.obsidian,
-                letterSpacing: -0.5,
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
         // Notification Bell Button
@@ -806,8 +1223,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _buildMetricTile(
                     title: 'RECOVERY',
-                    value: '92%',
-                    subtitle: 'Ready for Load',
+                    value: widget.controller.history.isNotEmpty ? '92%' : '100%',
+                    subtitle: widget.controller.history.isNotEmpty ? 'Ready for Load' : 'Fresh & Primed',
                     icon: Icons.favorite_rounded,
                     iconColor: AppColors.accentMintDark,
                     iconBg: AppColors.accentMintTint,
@@ -972,7 +1389,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: isCompact ? 6 : 8),
           Text(
-            totalReps > 0 ? '${totalReps.toLocaleString()} Reps' : '14.2k kg',
+            totalReps > 0 ? '${totalReps.toLocaleString()} Reps' : '0 Reps',
             style: TextStyle(
               fontSize: isCompact ? 16 : 18,
               fontWeight: FontWeight.w900,
@@ -987,18 +1404,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: const LinearProgressIndicator(
-                    value: 0.78,
+                  child: LinearProgressIndicator(
+                    value: totalReps > 0 ? (totalReps / 500).clamp(0.0, 1.0) : 0.0,
                     backgroundColor: AppColors.trackRing,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentMint),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentMint),
                     minHeight: 5,
                   ),
                 ),
               ),
               const SizedBox(width: 6),
-              const Text(
-                '78%',
-                style: TextStyle(
+              Text(
+                totalReps > 0 ? '${((totalReps / 500).clamp(0.0, 1.0) * 100).round()}%' : '0%',
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                   color: AppColors.stoneMuted,

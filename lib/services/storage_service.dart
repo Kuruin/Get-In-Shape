@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/workout_session.dart';
+import '../models/user_profile.dart';
 import '../data/bwf_routine_data.dart';
 
 class StorageService {
@@ -8,6 +9,8 @@ class StorageService {
   static const String _keyWorkoutHistory = 'bwf_workout_history';
   static const String _keyActiveDraft = 'bwf_active_draft';
   static const String _keyLastSeenVersion = 'bwf_last_seen_version';
+  static const String _keyUserProfile = 'bwf_user_profile';
+  static const String _keyOnboardingCompleted = 'bwf_onboarding_completed';
 
   final SharedPreferences _prefs;
 
@@ -120,5 +123,38 @@ class StorageService {
 
   Future<void> setLastSeenVersion(String version) async {
     await _prefs.setString(_keyLastSeenVersion, version);
+  }
+
+  // User Profile
+  UserProfile? getUserProfile() {
+    final raw = _prefs.getString(_keyUserProfile);
+    if (raw == null) return null;
+    try {
+      return UserProfile.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveUserProfile(UserProfile profile) async {
+    await _prefs.setString(_keyUserProfile, jsonEncode(profile.toJson()));
+  }
+
+  // Onboarding Status
+  bool isOnboardingCompleted() {
+    return _prefs.getBool(_keyOnboardingCompleted) ?? false;
+  }
+
+  Future<void> setOnboardingCompleted(bool completed) async {
+    await _prefs.setBool(_keyOnboardingCompleted, completed);
+  }
+
+  // Complete Reset of All Stats, History, Drafts, and Profile
+  Future<void> resetAllData() async {
+    await _prefs.remove(_keyWorkoutHistory);
+    await _prefs.remove(_keyActiveDraft);
+    await _prefs.remove(_keyProgressionLevels);
+    await _prefs.remove(_keyUserProfile);
+    await _prefs.setBool(_keyOnboardingCompleted, false);
   }
 }

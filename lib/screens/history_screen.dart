@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+
 import '../models/workout_session.dart';
 import '../theme/app_theme.dart';
 import '../controllers/workout_controller.dart';
@@ -21,9 +24,10 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class HistoryScreenState extends State<HistoryScreen> {
-  DateTime _selectedMonth = DateTime(2024, 10);
-  final Set<String> _expandedSessionIds = {'session_oct_25'};
+  DateTime _selectedMonth = DateTime.now();
+  final Set<String> _expandedSessionIds = {};
   bool _copiedReddit = false;
+  bool _copyIconPressed = false;
   Timer? _copyResetTimer;
   final ScrollController historyScrollController = ScrollController();
 
@@ -76,9 +80,15 @@ class HistoryScreenState extends State<HistoryScreen> {
 
     final buffer = StringBuffer();
     buffer.writeln('**BWF Recommended Routine Log - $dateStr**');
-    buffer.writeln('- **Duration**: ${durationMin > 0 ? '$durationMin mins' : '45 mins'}');
-    buffer.writeln('- **Total Reps**: ${session.totalReps > 0 ? session.totalReps.toLocaleString() : (216).toLocaleString()}');
-    buffer.writeln('- **Sets Completed**: ${session.completedSetCount > 0 ? session.completedSetCount.toLocaleString() : (27).toLocaleString()}');
+    buffer.writeln(
+      '- **Duration**: ${durationMin > 0 ? '$durationMin mins' : '45 mins'}',
+    );
+    buffer.writeln(
+      '- **Total Reps**: ${session.totalReps > 0 ? session.totalReps.toLocaleString() : (216).toLocaleString()}',
+    );
+    buffer.writeln(
+      '- **Sets Completed**: ${session.completedSetCount > 0 ? session.completedSetCount.toLocaleString() : (27).toLocaleString()}',
+    );
     buffer.writeln('');
     buffer.writeln('### Exercises & Progressions');
 
@@ -127,7 +137,11 @@ class HistoryScreenState extends State<HistoryScreen> {
       SnackBar(
         content: const Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: _HColors.accentMint, size: 18),
+            Icon(
+              Icons.check_circle_rounded,
+              color: _HColors.accentMint,
+              size: 18,
+            ),
             SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -164,7 +178,10 @@ class HistoryScreenState extends State<HistoryScreen> {
       ),
       builder: (ctx) {
         final now = DateTime.now();
-        final months = List.generate(6, (i) => DateTime(now.year, now.month - i));
+        final months = List.generate(
+          6,
+          (i) => DateTime(now.year, now.month - i),
+        );
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
@@ -193,22 +210,37 @@ class HistoryScreenState extends State<HistoryScreen> {
               ),
               const SizedBox(height: 12),
               ...months.map((m) {
-                final isSelected = m.year == _selectedMonth.year && m.month == _selectedMonth.month;
+                final isSelected =
+                    m.year == _selectedMonth.year &&
+                    m.month == _selectedMonth.month;
                 return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   selected: isSelected,
                   selectedTileColor: _HColors.emerald50,
                   title: Text(
                     DateFormat('MMMM yyyy').format(m),
                     style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? _HColors.emerald700 : _HColors.obsidian,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? _HColors.emerald700
+                          : _HColors.obsidian,
                       fontSize: 14,
                     ),
                   ),
                   trailing: isSelected
-                      ? const Icon(Icons.check_rounded, color: _HColors.accentMint, size: 20)
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: _HColors.accentMint,
+                          size: 20,
+                        )
                       : null,
                   onTap: () {
                     HapticFeedback.selectionClick();
@@ -237,7 +269,9 @@ class HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) {
-        final isRealSession = widget.controller.history.any((s) => s.id == session.id);
+        final isRealSession = widget.controller.history.any(
+          (s) => s.id == session.id,
+        );
 
         return DraggableScrollableSheet(
           initialChildSize: 0.78,
@@ -260,7 +294,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              DateFormat('EEEE, MMM d, yyyy').format(session.startTime),
+                              DateFormat('EEEE, MMM d, yyyy')
+                                  .format(session.startTime),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -269,7 +304,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                             ),
                             Text(
                               DateFormat.jm().format(session.startTime),
-                              style: const TextStyle(fontSize: 12, color: _HColors.stoneMuted),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: _HColors.stoneMuted,
+                              ),
                             ),
                           ],
                         ),
@@ -277,7 +315,11 @@ class HistoryScreenState extends State<HistoryScreen> {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.share_outlined, color: _HColors.obsidian, size: 20),
+                            icon: const Icon(
+                              Icons.share_outlined,
+                              color: _HColors.obsidian,
+                              size: 20,
+                            ),
                             tooltip: 'Export to Reddit',
                             onPressed: () {
                               Navigator.pop(ctx);
@@ -286,10 +328,16 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                           if (isRealSession)
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: AppColors.accentRed, size: 20),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.accentRed,
+                                size: 20,
+                              ),
                               tooltip: 'Delete workout record',
                               onPressed: () {
-                                widget.controller.deleteHistorySession(session.id);
+                                widget.controller.deleteHistorySession(
+                                  session.id,
+                                );
                                 Navigator.pop(ctx);
                               },
                             ),
@@ -312,7 +360,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                         child: _detailCapsule(
                           icon: Icons.repeat_rounded,
                           label: 'Total Reps',
-                          value: session.totalReps > 0 ? session.totalReps.toLocaleString() : (216).toLocaleString(),
+                          value: session.totalReps > 0
+                              ? session.totalReps.toLocaleString()
+                              : (216).toLocaleString(),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -320,7 +370,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                         child: _detailCapsule(
                           icon: Icons.check_circle_outline_rounded,
                           label: 'Sets Logged',
-                          value: '${session.completedSetCount > 0 ? session.completedSetCount : 27}',
+                          value:
+                              '${session.completedSetCount > 0 ? session.completedSetCount : 27}',
                         ),
                       ),
                     ],
@@ -349,7 +400,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                           const SizedBox(height: 4),
                           Text(
                             session.notes,
-                            style: const TextStyle(fontSize: 13, color: _HColors.obsidian),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: _HColors.obsidian,
+                            ),
                           ),
                         ],
                       ),
@@ -367,64 +421,78 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (session.sets.any((s) => s.isCompleted))
-                    ...session.sets.where((s) => s.isCompleted).map((s) => Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4.0),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _HColors.stoneTint,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: _HColors.stoneLight),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 22,
-                                height: 22,
-                                alignment: Alignment.center,
-                                decoration: const BoxDecoration(
-                                  color: _HColors.stoneLight,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${s.setIndex + 1}',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: _HColors.obsidian,
+                    ...session.sets
+                        .where((s) => s.isCompleted)
+                        .map(
+                          (s) => Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _HColors.stoneTint,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: _HColors.stoneLight),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 22,
+                                  height: 22,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    color: _HColors.stoneLight,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '${s.setIndex + 1}',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: _HColors.obsidian,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  s.exerciseName,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    s.exerciseName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: _HColors.obsidian,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${s.reps} reps${s.addedWeightKg > 0 ? ' (+${s.addedWeightKg}kg)' : ''}',
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: _HColors.obsidian,
+                                    fontWeight: FontWeight.w800,
+                                    color: _HColors.accentMint,
+                                    fontFeatures: [
+                                      FontFeature.tabularFigures(),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              Text(
-                                '${s.reps} reps${s.addedWeightKg > 0 ? ' (+${s.addedWeightKg}kg)' : ''}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: _HColors.accentMint,
-                                  fontFeatures: [FontFeature.tabularFigures()],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ))
-                  else ...[
-                    _mockSetTile('Strict Pull-Ups', '3 × 8 reps', '+1 PR'),
-                    _mockSetTile('Parallel Bar Dips', '3 × 8 reps', 'Mastered'),
-                    _mockSetTile('Bulgarian Split Squats', '3 × 8 @ +10kg', ''),
-                    _mockSetTile('Horizontal Rows', '3 × 8 reps', ''),
-                    _mockSetTile('Push-ups', '3 × 8 reps', ''),
-                    _mockSetTile('Roman Chair Extensions', '3 × 10 reps', ''),
-                  ],
+                        )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: Text(
+                          'No completed sets logged for this session.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: _HColors.stoneMuted,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             );
@@ -434,58 +502,11 @@ class HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _mockSetTile(String name, String reps, String tag) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: _HColors.stoneTint,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _HColors.stoneLight),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_rounded, size: 16, color: _HColors.accentMint),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _HColors.obsidian),
-            ),
-          ),
-          Text(
-            reps,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: _HColors.stoneMuted,
-            ),
-          ),
-          if (tag.isNotEmpty) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _HColors.emerald50,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: _HColors.emerald200),
-              ),
-              child: Text(
-                tag,
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  color: _HColors.emerald700,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _detailCapsule({required IconData icon, required String label, required String value}) {
+  Widget _detailCapsule({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
@@ -549,19 +570,15 @@ class HistoryScreenState extends State<HistoryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // 1. Floating Horizontal Weekly Consistency Chip Bar
-                          _buildWeeklyConsistencyBar(),
+                          _buildWeeklyConsistencyBar(realHistory),
                           const SizedBox(height: 14),
 
                           // 2. Monthly Heatmap Card with Bento Header & Dedicated Telemetry Capsule
                           _buildMonthlyHeatmapCard(realHistory),
                           const SizedBox(height: 14),
 
-                          // 3. Dedicated Progression Bar Mini-Card (Strict Reps Load)
-                          _buildStrictRepsLoadCard(),
-                          const SizedBox(height: 14),
-
-                          // 4. Peak PR Achieved Callout Banner
-                          _buildPeakPrBanner(),
+                          // 3. Peak PR Achieved Callout Banner
+                          _buildPeakPrBanner(realHistory),
                           const SizedBox(height: 18),
 
                           // 5. Chronological Timeline Stream: Recent Workout Logs
@@ -611,9 +628,7 @@ class HistoryScreenState extends State<HistoryScreen> {
           ),
           decoration: BoxDecoration(
             color: _HColors.canvas.withValues(alpha: 0.92),
-            border: const Border(
-              bottom: BorderSide(color: Color(0x2057534E)),
-            ),
+            border: const Border(bottom: BorderSide(color: Color(0x2057534E))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -699,7 +714,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                     behavior: HitTestBehavior.opaque,
                     onTap: _showMonthPickerSheet,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: _HColors.surfaceCard,
                         borderRadius: BorderRadius.circular(20),
@@ -773,22 +791,40 @@ class HistoryScreenState extends State<HistoryScreen> {
   // =========================================================================
   // 1. FLOATING HORIZONTAL WEEKLY CONSISTENCY CHIP BAR
   // =========================================================================
-  Widget _buildWeeklyConsistencyBar() {
+  Widget _buildWeeklyConsistencyBar(List<WorkoutSession> realHistory) {
     final now = DateTime.now();
     // Monday of current week
     final monday = now.subtract(Duration(days: now.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
-    final rangeText = '${DateFormat('MMM d').format(monday).toUpperCase()} - ${DateFormat('d').format(sunday).toUpperCase()}';
+    final rangeText =
+        '${DateFormat('MMM d').format(monday).toUpperCase()} - ${DateFormat('d').format(sunday).toUpperCase()}';
 
-    final days = [
-      {'day': 'M', 'date': monday.day, 'status': 'logged'},
-      {'day': 'T', 'date': monday.add(const Duration(days: 1)).day, 'status': 'rest'},
-      {'day': 'W', 'date': monday.add(const Duration(days: 2)).day, 'status': 'pr'},
-      {'day': 'T', 'date': monday.add(const Duration(days: 3)).day, 'status': 'rest'},
-      {'day': 'F', 'date': monday.add(const Duration(days: 4)).day, 'status': 'logged'},
-      {'day': 'S', 'date': monday.add(const Duration(days: 5)).day, 'status': 'rest'},
-      {'day': 'S', 'date': monday.add(const Duration(days: 6)).day, 'status': 'rest'},
-    ];
+    final dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final days = List.generate(7, (i) {
+      final d = monday.add(Duration(days: i));
+      final hasWorkout = realHistory.any(
+        (s) =>
+            s.startTime.year == d.year &&
+            s.startTime.month == d.month &&
+            s.startTime.day == d.day,
+      );
+      final isLatest =
+          realHistory.isNotEmpty &&
+          realHistory.first.startTime.year == d.year &&
+          realHistory.first.startTime.month == d.month &&
+          realHistory.first.startTime.day == d.day;
+      return {
+        'day': dayNames[i],
+        'date': d.day,
+        'status': hasWorkout ? (isLatest ? 'pr' : 'logged') : 'rest',
+      };
+    });
+
+    final String streakPillText = realHistory.isEmpty
+        ? '0 Week Streak'
+        : (realHistory.length == 1
+              ? '1 Session'
+              : '${realHistory.length} Sessions');
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -825,7 +861,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _HColors.stoneTint,
                         borderRadius: BorderRadius.circular(4),
@@ -843,7 +882,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              // 4 Week Streak Pill
+              // Streak Pill
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -851,18 +890,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: _HColors.emerald200),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.local_fire_department_rounded,
                       color: _HColors.accentMint,
                       size: 13,
                     ),
-                    SizedBox(width: 3),
+                    const SizedBox(width: 3),
                     Text(
-                      '4 Week Streak',
-                      style: TextStyle(
+                      streakPillText,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: _HColors.emerald700,
@@ -890,12 +929,16 @@ class HistoryScreenState extends State<HistoryScreen> {
                   decoration: BoxDecoration(
                     color: isPR
                         ? _HColors.obsidian
-                        : (isLogged ? _HColors.stoneTint : const Color(0x30F5F5F4)),
+                        : (isLogged
+                              ? _HColors.stoneTint
+                              : const Color(0x30F5F5F4)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPR
                           ? _HColors.emerald200
-                          : (isLogged ? _HColors.stoneLight : Colors.transparent),
+                          : (isLogged
+                                ? _HColors.stoneLight
+                                : Colors.transparent),
                       width: isPR ? 1.5 : 1,
                     ),
                     boxShadow: isPR
@@ -917,7 +960,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                           fontWeight: isPR ? FontWeight.w900 : FontWeight.w700,
                           color: isPR
                               ? _HColors.accentMint
-                              : (isLogged ? _HColors.stoneMuted : const Color(0x8057534E)),
+                              : (isLogged
+                                    ? _HColors.stoneMuted
+                                    : const Color(0x8057534E)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -925,10 +970,14 @@ class HistoryScreenState extends State<HistoryScreen> {
                         '${d['date']}',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: (isPR || isLogged) ? FontWeight.w800 : FontWeight.w500,
+                          fontWeight: (isPR || isLogged)
+                              ? FontWeight.w800
+                              : FontWeight.w500,
                           color: isPR
                               ? Colors.white
-                              : (isLogged ? _HColors.obsidian : const Color(0x8057534E)),
+                              : (isLogged
+                                    ? _HColors.obsidian
+                                    : const Color(0x8057534E)),
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -939,7 +988,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                           shape: BoxShape.circle,
                           color: isPR
                               ? _HColors.accentMint
-                              : (isLogged ? _HColors.accentMint : Colors.transparent),
+                              : (isLogged
+                                    ? _HColors.accentMint
+                                    : Colors.transparent),
                         ),
                       ),
                     ],
@@ -961,7 +1012,19 @@ class HistoryScreenState extends State<HistoryScreen> {
     final year = _selectedMonth.year;
     final month = _selectedMonth.month;
     final daysInMonth = DateUtils.getDaysInMonth(year, month);
-    final firstDayWeekday = DateTime(year, month, 1).weekday; // 1 = Mon, 7 = Sun
+    final firstDayWeekday = DateTime(
+      year,
+      month,
+      1,
+    ).weekday; // 1 = Mon, 7 = Sun
+
+    final monthSessions = realHistory
+        .where((s) => s.startTime.year == year && s.startTime.month == month)
+        .toList();
+    final int monthLoadReps = monthSessions.fold(
+      0,
+      (sum, s) => sum + s.totalReps,
+    );
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1050,7 +1113,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      '${realHistory.length > 3 ? realHistory.length : 14} / 31 Logged',
+                      '${monthSessions.length} / $daysInMonth Logged',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -1078,18 +1141,20 @@ class HistoryScreenState extends State<HistoryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-                      .map((d) => Expanded(
-                            child: Center(
-                              child: Text(
-                                d,
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  color: _HColors.stoneMuted,
-                                ),
+                      .map(
+                        (d) => Expanded(
+                          child: Center(
+                            child: Text(
+                              d,
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: _HColors.stoneMuted,
                               ),
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 6),
@@ -1127,9 +1192,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _HColors.stoneLight),
                 ),
-                child: const Text(
-                  'Month Load: 1,840 Strict Reps',
-                  style: TextStyle(
+                child: Text(
+                  'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     color: _HColors.obsidian,
@@ -1143,7 +1208,11 @@ class HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildHeatmapTiles(int firstDayWeekday, int daysInMonth, List<WorkoutSession> realHistory) {
+  Widget _buildHeatmapTiles(
+    int firstDayWeekday,
+    int daysInMonth,
+    List<WorkoutSession> realHistory,
+  ) {
     // 35 tiles total (5 weeks x 7)
     final tiles = <Widget>[];
 
@@ -1156,17 +1225,29 @@ class HistoryScreenState extends State<HistoryScreen> {
           alignment: Alignment.center,
           child: Text(
             '${30 - (prevMonthDaysCount - 1 - i)}',
-            style: const TextStyle(fontSize: 10, color: Color(0x4057534E), fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 10,
+              color: Color(0x4057534E),
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       );
     }
 
-    // Days in current month
-    // Sample simulated activity pattern matching history.html
-    final sessionDays = {2, 4, 6, 9, 11, 13, 14, 16, 18, 20, 21, 23, 27, 30};
-    final mobilityDays = {5, 17, 31};
-    const prDay = 25;
+    // Days in current month derived from real history
+    final monthSessions = realHistory
+        .where(
+          (s) =>
+              s.startTime.year == _selectedMonth.year &&
+              s.startTime.month == _selectedMonth.month,
+        )
+        .toList();
+    final sessionDays = monthSessions.map((s) => s.startTime.day).toSet();
+    final prDay = monthSessions.isNotEmpty
+        ? monthSessions.first.startTime.day
+        : -1;
+    final mobilityDays = <int>{};
 
     for (int day = 1; day <= daysInMonth; day++) {
       final isPR = day == prDay;
@@ -1244,7 +1325,11 @@ class HistoryScreenState extends State<HistoryScreen> {
           alignment: Alignment.center,
           child: Text(
             '$i',
-            style: const TextStyle(fontSize: 10, color: Color(0x4057534E), fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 10,
+              color: Color(0x4057534E),
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       );
@@ -1277,201 +1362,35 @@ class HistoryScreenState extends State<HistoryScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: _HColors.stoneMuted),
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: _HColors.stoneMuted,
+          ),
         ),
       ],
     );
   }
 
   // =========================================================================
-  // 3. STRICT REPS LOAD / VOLUME MINI CARD
-  // =========================================================================
-  Widget _buildStrictRepsLoadCard() {
-    final bars = [
-      {'day': '16', 'reps': 24, 'isPeak': false},
-      {'day': '18', 'reps': 68, 'isPeak': false},
-      {'day': '20', 'reps': 72, 'isPeak': false},
-      {'day': '21', 'reps': 80, 'isPeak': false},
-      {'day': '23', 'reps': 84, 'isPeak': false},
-      {'day': '25', 'reps': 96, 'isPeak': true},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _HColors.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _HColors.stoneBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A1E232A),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'STRICT REPS LOAD',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: _HColors.stoneMuted,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _HColors.emerald50,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: _HColors.emerald200),
-                      ),
-                      child: const Text(
-                        'Oct 16-29',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: _HColors.emerald700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  const Text(
-                    '96 reps',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: _HColors.obsidian,
-                      letterSpacing: -0.5,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _HColors.emerald50,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: _HColors.emerald200),
-                    ),
-                    child: const Text(
-                      'PEAK PR',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: _HColors.accentMint,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Custom Bar Chart
-          SizedBox(
-            height: 90,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: bars.map((b) {
-                final isPeak = b['isPeak'] as bool;
-                final reps = b['reps'] as int;
-                final day = b['day'] as String;
-                final heightFraction = reps / 100.0; // Max 100 reps
-
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (isPeak)
-                      Container(
-                        width: 5,
-                        height: 5,
-                        margin: const EdgeInsets.only(bottom: 4),
-                        decoration: const BoxDecoration(
-                          color: _HColors.obsidianDark,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    Container(
-                      width: 18,
-                      height: 56 * heightFraction,
-                      decoration: BoxDecoration(
-                        color: isPeak
-                            ? _HColors.accentMint
-                            : (day == '23' ? _HColors.obsidian : _HColors.stoneLight),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      day,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: isPeak ? FontWeight.w900 : FontWeight.w700,
-                        color: isPeak ? _HColors.accentMint : _HColors.stoneMuted,
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Subtext
-          Container(
-            padding: const EdgeInsets.only(top: 8),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0x1057534E))),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.trending_up_rounded, size: 14, color: _HColors.accentMint),
-                    SizedBox(width: 4),
-                    Text(
-                      'Dynamic load pairs peak',
-                      style: TextStyle(fontSize: 10, color: _HColors.stoneMuted, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                Text(
-                  'Strict Reps Load',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: _HColors.obsidian),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // =========================================================================
   // 4. PEAK PR ACHIEVED BANNER
   // =========================================================================
-  Widget _buildPeakPrBanner() {
+  Widget _buildPeakPrBanner(List<WorkoutSession> realHistory) {
+    final bool hasHistory = realHistory.isNotEmpty;
+    final WorkoutSession? bestSession = hasHistory
+        ? realHistory.reduce((a, b) => a.totalReps >= b.totalReps ? a : b)
+        : null;
+
+    final String titleText = hasHistory
+        ? 'PEAK PR ACHIEVED'
+        : 'ESTABLISH YOUR BASELINE';
+    final String dateBadge = hasHistory
+        ? DateFormat('EEE MMM d').format(bestSession!.startTime)
+        : 'Ready';
+    final String subtitleText = hasHistory
+        ? '${bestSession!.completedSetCount} Completed Sets (${bestSession.totalReps} total reps)'
+        : 'Log your first workout to record strict reps and track personal records.';
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1534,9 +1453,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'PEAK PR ACHIEVED',
-                            style: TextStyle(
+                          Text(
+                            titleText,
+                            style: const TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               color: _HColors.emerald700,
@@ -1545,15 +1464,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                           const SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(color: _HColors.emerald200),
                             ),
-                            child: const Text(
-                              'Wed Oct 25',
-                              style: TextStyle(
+                            child: Text(
+                              dateBadge,
+                              style: const TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w700,
                                 color: _HColors.emerald700,
@@ -1563,9 +1485,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        '+1 Rep Strict Pull-Up (96 total reps)',
-                        style: TextStyle(
+                      Text(
+                        subtitleText,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           color: _HColors.obsidian,
@@ -1588,10 +1510,14 @@ class HistoryScreenState extends State<HistoryScreen> {
               HapticFeedback.heavyImpact();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('🎉 Phenomenal work! Progressive overload verified.'),
+                  content: const Text(
+                    '🎉 Phenomenal work! Progressive overload verified.',
+                  ),
                   backgroundColor: _HColors.obsidianDark,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -1639,67 +1565,106 @@ class HistoryScreenState extends State<HistoryScreen> {
   // 5. CHRONOLOGICAL TIMELINE STREAM: RECENT WORKOUT LOGS
   // =========================================================================
   Widget _buildTimelineStream(List<WorkoutSession> realHistory) {
-    final List<Map<String, dynamic>> sessions = [];
+    if (realHistory.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Logs',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: _HColors.obsidian,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _HColors.stoneLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '0 Sessions',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: _HColors.stoneMuted,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+            decoration: BoxDecoration(
+              color: _HColors.surfaceCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _HColors.stoneBorder),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0A1E232A),
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: const BoxDecoration(
+                    color: _HColors.stoneTint,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.history_rounded,
+                    color: _HColors.stoneMuted,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'No Workouts Logged Yet',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: _HColors.obsidian,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Completed workouts, set details, and PR achievements will appear here.\nTap "Start Workout" on Home to begin your first session!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: _HColors.stoneMuted,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
 
-    if (realHistory.isNotEmpty) {
-      for (int i = 0; i < realHistory.length; i++) {
-        final s = realHistory[i];
-        sessions.add({
-          'id': s.id,
-          'date': DateFormat('EEEE, MMM d').format(s.startTime),
-          'duration': _formatDuration(s.durationSeconds),
-          'session': s,
-          'isPR': i == 0,
-          'isReal': true,
-        });
-      }
-    } else {
-      // Mock signature sessions matching history.html
-      sessions.addAll([
-        {
-          'id': 'session_oct_25',
-          'date': 'Wednesday, Oct 25',
-          'duration': '58m',
-          'isPR': true,
-          'isReal': false,
-          'title': 'First Pair + Core & Squat',
-          'pairs': '3 Pairs',
-          'bpm': '132 avg bpm',
-          'exercises': [
-            {'name': 'Strict Pull-Ups', 'detail': '3 × 7 reps @ BW', 'badge': '+1 PR', 'badgeColor': _HColors.emerald700, 'badgeBg': _HColors.emerald50},
-            {'name': 'Parallel Bar Dips', 'detail': '3 × 8 reps', 'badge': 'Mastered', 'badgeColor': _HColors.emerald700, 'badgeBg': _HColors.emerald50},
-            {'name': 'Bulgarian Split Squats', 'detail': '3 × 8 @ +10kg', 'badge': '', 'badgeColor': Colors.transparent, 'badgeBg': Colors.transparent},
-          ],
-        },
-        {
-          'id': 'session_oct_23',
-          'date': 'Monday, Oct 23',
-          'duration': '52m',
-          'isPR': false,
-          'isReal': false,
-          'title': 'Hinge + Second Pair',
-          'pairs': '3 Pairs',
-          'bpm': '132 avg bpm',
-          'exercises': [
-            {'name': 'Roman Chair Extensions', 'detail': '3 × 10 reps @ BW', 'badge': '', 'badgeColor': Colors.transparent, 'badgeBg': Colors.transparent},
-            {'name': 'Ring Dip Negatives', 'detail': '3 × 8 reps', 'badge': '', 'badgeColor': Colors.transparent, 'badgeBg': Colors.transparent},
-          ],
-        },
-        {
-          'id': 'session_oct_21',
-          'date': 'Saturday, Oct 21',
-          'duration': '55m',
-          'isPR': false,
-          'isReal': false,
-          'title': 'First Pair Baseline',
-          'pairs': '3 Pairs',
-          'bpm': '126 avg bpm',
-          'exercises': [
-            {'name': 'Arch Body Hold', 'detail': '3 × 30s', 'badge': '', 'badgeColor': Colors.transparent, 'badgeBg': Colors.transparent},
-            {'name': 'L-Sit Practice', 'detail': '3 × 15s', 'badge': '', 'badgeColor': Colors.transparent, 'badgeBg': Colors.transparent},
-          ],
-        },
-      ]);
+    final List<Map<String, dynamic>> sessions = [];
+    for (int i = 0; i < realHistory.length; i++) {
+      final s = realHistory[i];
+      sessions.add({
+        'id': s.id,
+        'date': DateFormat('EEEE, MMM d').format(s.startTime),
+        'duration': _formatDuration(s.durationSeconds),
+        'session': s,
+        'isPR': i == 0,
+        'isReal': true,
+      });
     }
 
     return Column(
@@ -1720,7 +1685,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: _HColors.stoneLight,
                     borderRadius: BorderRadius.circular(12),
@@ -1748,10 +1716,7 @@ class HistoryScreenState extends State<HistoryScreen> {
               left: 10,
               top: 14,
               bottom: 24,
-              child: Container(
-                width: 2,
-                color: _HColors.stoneLight,
-              ),
+              child: Container(width: 2, color: _HColors.stoneLight),
             ),
 
             // Timeline Items
@@ -1781,9 +1746,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                           height: 14,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isPR ? _HColors.accentMint : _HColors.obsidian,
+                            color: isPR
+                                ? _HColors.accentMint
+                                : _HColors.obsidian,
                             border: Border.all(
-                              color: isPR ? _HColors.emerald100 : _HColors.stoneLight,
+                              color: isPR
+                                  ? _HColors.emerald100
+                                  : _HColors.stoneLight,
                               width: 3,
                             ),
                           ),
@@ -1825,7 +1794,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Row(
@@ -1843,12 +1813,20 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           ),
                                           const SizedBox(width: 6),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: isPR ? _HColors.emerald50 : _HColors.stoneTint,
-                                              borderRadius: BorderRadius.circular(12),
+                                              color: isPR
+                                                  ? _HColors.emerald50
+                                                  : _HColors.stoneTint,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               border: Border.all(
-                                                color: isPR ? _HColors.emerald200 : _HColors.stoneLight,
+                                                color: isPR
+                                                    ? _HColors.emerald200
+                                                    : _HColors.stoneLight,
                                               ),
                                             ),
                                             child: Text(
@@ -1856,7 +1834,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                                               style: TextStyle(
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w800,
-                                                color: isPR ? _HColors.emerald700 : _HColors.stoneMuted,
+                                                color: isPR
+                                                    ? _HColors.emerald700
+                                                    : _HColors.stoneMuted,
                                                 letterSpacing: 0.3,
                                               ),
                                             ),
@@ -1868,10 +1848,15 @@ class HistoryScreenState extends State<HistoryScreen> {
                                     Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: _HColors.stoneTint,
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -1896,7 +1881,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                                         const SizedBox(width: 4),
                                         AnimatedRotation(
                                           turns: isExpanded ? 0.5 : 0.0,
-                                          duration: const Duration(milliseconds: 200),
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
                                           child: const Icon(
                                             Icons.keyboard_arrow_down_rounded,
                                             size: 18,
@@ -1917,12 +1904,19 @@ class HistoryScreenState extends State<HistoryScreen> {
                                 color: const Color(0x1057534E),
                               ),
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  10,
+                                  12,
+                                  12,
+                                ),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           isReal
@@ -1934,21 +1928,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             color: _HColors.stoneMuted,
                                           ),
                                         ),
-                                        GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () {
-                                            if (sessionObj != null) {
-                                              _showSessionDetails(sessionObj);
-                                            } else {
-                                              _showMockDetails(item);
-                                            }
-                                          },
-                                          child: const Icon(
-                                            Icons.more_vert_rounded,
-                                            size: 16,
-                                            color: _HColors.stoneMuted,
+                                        if (sessionObj != null)
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () => _showSessionDetails(
+                                              sessionObj!,
+                                            ),
+                                            child: const Icon(
+                                              Icons.more_vert_rounded,
+                                              size: 16,
+                                              color: _HColors.stoneMuted,
+                                            ),
                                           ),
-                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -1957,14 +1948,23 @@ class HistoryScreenState extends State<HistoryScreen> {
                                     SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 5,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: _HColors.stoneTint,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
-                                            const Icon(Icons.schedule_rounded, size: 12, color: _HColors.obsidian),
+                                            const Icon(
+                                              Icons.schedule_rounded,
+                                              size: 12,
+                                              color: _HColors.obsidian,
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               item['duration'] as String,
@@ -1975,9 +1975,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            const Text('•', style: TextStyle(color: _HColors.stoneLight)),
+                                            const Text(
+                                              '•',
+                                              style: TextStyle(
+                                                color: _HColors.stoneLight,
+                                              ),
+                                            ),
                                             const SizedBox(width: 8),
-                                            const Icon(Icons.fitness_center_rounded, size: 12, color: _HColors.obsidian),
+                                            const Icon(
+                                              Icons.fitness_center_rounded,
+                                              size: 12,
+                                              color: _HColors.obsidian,
+                                            ),
                                             const SizedBox(width: 4),
                                             const Text(
                                               '3 Pairs',
@@ -1989,9 +1998,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             ),
                                             if (isPR) ...[
                                               const SizedBox(width: 8),
-                                              const Text('•', style: TextStyle(color: _HColors.stoneLight)),
+                                              const Text(
+                                                '•',
+                                                style: TextStyle(
+                                                  color: _HColors.stoneLight,
+                                                ),
+                                              ),
                                               const SizedBox(width: 8),
-                                              const Icon(Icons.check_rounded, size: 12, color: _HColors.accentMint),
+                                              const Icon(
+                                                Icons.check_rounded,
+                                                size: 12,
+                                                color: _HColors.accentMint,
+                                              ),
                                               const SizedBox(width: 2),
                                               const Text(
                                                 'Passed Progression',
@@ -2012,18 +2030,30 @@ class HistoryScreenState extends State<HistoryScreen> {
                                     if (isReal && sessionObj != null)
                                       ..._buildRealExerciseCards(sessionObj)
                                     else
-                                      ...((item['exercises'] as List<dynamic>).map((ex) {
+                                      ...((item['exercises'] as List<dynamic>).map((
+                                        ex,
+                                      ) {
                                         final badge = ex['badge'] as String;
                                         return Container(
-                                          margin: const EdgeInsets.only(bottom: 6),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 6,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 8,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: _HColors.stoneTint,
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: _HColors.stoneLight),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: _HColors.stoneLight,
+                                            ),
                                           ),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Expanded(
                                                 child: Row(
@@ -2031,10 +2061,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                     Container(
                                                       width: 5,
                                                       height: 5,
-                                                      decoration: const BoxDecoration(
-                                                        color: _HColors.accentMint,
-                                                        shape: BoxShape.circle,
-                                                      ),
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                            color: _HColors
+                                                                .accentMint,
+                                                            shape:
+                                                                BoxShape.circle,
+                                                          ),
                                                     ),
                                                     const SizedBox(width: 6),
                                                     Expanded(
@@ -2042,10 +2075,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                         ex['name'] as String,
                                                         style: const TextStyle(
                                                           fontSize: 11,
-                                                          fontWeight: FontWeight.w700,
-                                                          color: _HColors.obsidian,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color:
+                                                              _HColors.obsidian,
                                                         ),
-                                                        overflow: TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -2059,25 +2095,42 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                     ex['detail'] as String,
                                                     style: const TextStyle(
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: _HColors.stoneMuted,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          _HColors.stoneMuted,
                                                     ),
                                                   ),
                                                   if (badge.isNotEmpty) ...[
                                                     const SizedBox(width: 6),
                                                     Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 1.5,
+                                                          ),
                                                       decoration: BoxDecoration(
-                                                        color: ex['badgeBg'] as Color,
-                                                        borderRadius: BorderRadius.circular(4),
-                                                        border: Border.all(color: _HColors.emerald200),
+                                                        color:
+                                                            ex['badgeBg']
+                                                                as Color,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              4,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: _HColors
+                                                              .emerald200,
+                                                        ),
                                                       ),
                                                       child: Text(
                                                         badge,
                                                         style: TextStyle(
                                                           fontSize: 8,
-                                                          fontWeight: FontWeight.w900,
-                                                          color: ex['badgeColor'] as Color,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color:
+                                                              ex['badgeColor']
+                                                                  as Color,
                                                         ),
                                                       ),
                                                     ),
@@ -2093,16 +2146,24 @@ class HistoryScreenState extends State<HistoryScreen> {
 
                                     // PR Banner & View Action
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         if (isPR)
                                           Flexible(
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: _HColors.emerald50,
-                                                borderRadius: BorderRadius.circular(6),
-                                                border: Border.all(color: _HColors.emerald200),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: _HColors.emerald200,
+                                                ),
                                               ),
                                               child: const Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -2118,10 +2179,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                       'PR: +1 Rep Strict Pull-Up',
                                                       style: TextStyle(
                                                         fontSize: 9,
-                                                        fontWeight: FontWeight.w800,
-                                                        color: _HColors.emerald700,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color:
+                                                            _HColors.emerald700,
                                                       ),
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ),
                                                 ],
@@ -2131,35 +2195,32 @@ class HistoryScreenState extends State<HistoryScreen> {
                                         else
                                           const SizedBox.shrink(),
 
-                                        GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () {
-                                            if (sessionObj != null) {
-                                              _showSessionDetails(sessionObj);
-                                            } else {
-                                              _showMockDetails(item);
-                                            }
-                                          },
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'View Full Log',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
+                                        if (sessionObj != null)
+                                          GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () => _showSessionDetails(
+                                              sessionObj!,
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'View Full Log',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: _HColors.obsidian,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 2),
+                                                Icon(
+                                                  Icons.arrow_forward_rounded,
+                                                  size: 12,
                                                   color: _HColors.obsidian,
                                                 ),
-                                              ),
-                                              SizedBox(width: 2),
-                                              Icon(
-                                                Icons.arrow_forward_rounded,
-                                                size: 12,
-                                                color: _HColors.obsidian,
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
                                       ],
                                     ),
                                   ],
@@ -2257,39 +2318,11 @@ class HistoryScreenState extends State<HistoryScreen> {
     }).toList();
   }
 
-  void _showMockDetails(Map<String, dynamic> item) {
-    final mockSession = WorkoutSession(
-      id: item['id'] as String,
-      startTime: DateTime(2024, 10, 25, 17, 30),
-      durationSeconds: 58 * 60,
-      notes: 'Form felt crispy today! Hit target rep ceiling on pullups and kept rest strict at 90s.',
-      sets: [
-        LoggedSet(exerciseId: 'pullup_4', exerciseName: 'Strict Pull-Ups', ladderId: 'pullup', setIndex: 0, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'pullup_4', exerciseName: 'Strict Pull-Ups', ladderId: 'pullup', setIndex: 1, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'pullup_4', exerciseName: 'Strict Pull-Ups', ladderId: 'pullup', setIndex: 2, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'dip_3', exerciseName: 'Parallel Bar Dips', ladderId: 'dip', setIndex: 0, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'dip_3', exerciseName: 'Parallel Bar Dips', ladderId: 'dip', setIndex: 1, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'dip_3', exerciseName: 'Parallel Bar Dips', ladderId: 'dip', setIndex: 2, reps: 8, isCompleted: true),
-        LoggedSet(exerciseId: 'squat_4', exerciseName: 'Bulgarian Split Squats', ladderId: 'squat', setIndex: 0, reps: 8, addedWeightKg: 10, isCompleted: true),
-        LoggedSet(exerciseId: 'squat_4', exerciseName: 'Bulgarian Split Squats', ladderId: 'squat', setIndex: 1, reps: 8, addedWeightKg: 10, isCompleted: true),
-        LoggedSet(exerciseId: 'squat_4', exerciseName: 'Bulgarian Split Squats', ladderId: 'squat', setIndex: 2, reps: 8, addedWeightKg: 10, isCompleted: true),
-      ],
-    );
-    _showSessionDetails(mockSession);
-  }
-
   // =========================================================================
   // 6. REDDIT MARKDOWN EXPORT BANNER
   // =========================================================================
   Widget _buildRedditExportBanner(List<WorkoutSession> realHistory) {
-    final sessionToExport = realHistory.isNotEmpty
-        ? realHistory.first
-        : WorkoutSession(
-            id: 'mock_export',
-            startTime: DateTime(2024, 10, 25, 17, 30),
-            durationSeconds: 58 * 60,
-            notes: 'Solid full body session. Target 3x8 completed on pullups.',
-          );
+    final sessionToExport = realHistory.isNotEmpty ? realHistory.first : null;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -2311,18 +2344,75 @@ class HistoryScreenState extends State<HistoryScreen> {
           Expanded(
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: _HColors.emerald50,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: _HColors.emerald200),
-                  ),
-                  child: const Icon(
-                    Icons.content_copy_rounded,
-                    size: 18,
-                    color: _HColors.accentMint,
+                // Animated copy icon — taps animate with a scale bounce + color flash
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) {
+                    setState(() => _copyIconPressed = true);
+                  },
+                  onTapUp: (_) {
+                    setState(() => _copyIconPressed = false);
+                    if (sessionToExport != null) {
+                      _copyRedditMarkdown(sessionToExport);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'No workouts logged yet. Complete a workout first!',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  onTapCancel: () {
+                    setState(() => _copyIconPressed = false);
+                  },
+                  child: AnimatedScale(
+                    scale: _copyIconPressed ? 0.82 : 1.0,
+                    duration: const Duration(milliseconds: 120),
+                    curve: Curves.easeOut,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: _copiedReddit
+                            ? _HColors.accentMint
+                            : _HColors.emerald50,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: _copiedReddit
+                              ? _HColors.accentMint
+                              : _HColors.emerald200,
+                        ),
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, anim) => ScaleTransition(
+                          scale: anim,
+                          child: child,
+                        ),
+                        child: Icon(
+                          _copiedReddit
+                              ? Icons.check_rounded
+                              : Icons.content_copy_rounded,
+                          key: ValueKey(_copiedReddit),
+                          size: 18,
+                          color: _copiedReddit
+                              ? Colors.white
+                              : _HColors.accentMint,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -2357,15 +2447,40 @@ class HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Copy Button
+          // Share Button — triggers native share sheet
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _copyRedditMarkdown(sessionToExport),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              if (sessionToExport != null) {
+                final md = _generateRedditMarkdown(sessionToExport);
+                Share.share(
+                  md,
+                  subject: 'BWF Recommended Routine Log',
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'No workouts logged yet. Complete a workout first!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: _copiedReddit ? _HColors.accentMint : _HColors.obsidian,
+                color: _HColors.obsidian,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
@@ -2375,18 +2490,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ],
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    _copiedReddit ? Icons.check_rounded : Icons.share_rounded,
+                    Icons.ios_share_rounded,
                     size: 14,
                     color: Colors.white,
                   ),
-                  const SizedBox(width: 5),
+                  SizedBox(width: 5),
                   Text(
-                    _copiedReddit ? 'Copied!' : 'Copy',
-                    style: const TextStyle(
+                    'Share',
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,

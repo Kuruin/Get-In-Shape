@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_app_1/data/bwf_routine_data.dart';
+import 'package:workout_app_1/models/user_profile.dart';
+import 'package:workout_app_1/models/workout_session.dart';
 import 'package:workout_app_1/services/storage_service.dart';
 import 'package:workout_app_1/controllers/workout_controller.dart';
 import 'package:workout_app_1/screens/active_workout_screen.dart';
@@ -11,6 +14,14 @@ import 'package:workout_app_1/main.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Helper to dismiss version changelog modal if it appears on first home mount
+  Future<void> dismissChangelogIfNeeded(WidgetTester tester) async {
+    if (find.text("Got it, Let's Train").evaluate().isNotEmpty) {
+      await tester.tap(find.text("Got it, Let's Train"));
+      await tester.pumpAndSettle();
+    }
+  }
 
   group('BWF Routine Database Tests', () {
     test('Verifies all 9 BWF RR ladders exist and have exercises', () {
@@ -30,7 +41,7 @@ void main() {
     });
   });
 
-  group('Workout Controller & Persistence Tests', () {
+  group('Workout Controller & Local Persistence Tests', () {
     late StorageService storage;
     late WorkoutController controller;
 
@@ -86,40 +97,172 @@ void main() {
       expect(updated.id, 'pullup_4');
       expect(updated.name, 'Full Pull-ups');
     });
+
+    test('Saves custom user profile and marks onboarding completed', () async {
+      expect(controller.isOnboardingCompleted(), isFalse);
+      expect(controller.userProfile, isNull);
+
+      final profile = UserProfile(
+        name: 'Alex Calisthenics',
+        isGuest: false,
+        fitnessGoal: 'Master Pull-ups & Dips',
+        createdAt: DateTime.now(),
+      );
+
+      await controller.saveProfile(profile);
+
+      expect(controller.isOnboardingCompleted(), isTrue);
+      expect(controller.userProfile?.name, 'Alex Calisthenics');
+      expect(controller.userProfile?.isGuest, isFalse);
+      expect(controller.userProfile?.fitnessGoal, 'Master Pull-ups & Dips');
+    });
+
+    test('Saves guest profile and marks onboarding completed', () async {
+      expect(controller.isOnboardingCompleted(), isFalse);
+
+      await controller.saveGuestProfile();
+
+      expect(controller.isOnboardingCompleted(), isTrue);
+      expect(controller.userProfile?.name, 'Guest Athlete');
+      expect(controller.userProfile?.isGuest, isTrue);
+    });
+
+    test('Reset all data wipes profile, sessions, and onboarding status', () async {
+      await controller.saveGuestProfile();
+      controller.startWorkout();
+      expect(controller.isOnboardingCompleted(), isTrue);
+      expect(controller.activeSession, isNotNull);
+
+      await controller.resetAllData();
+
+      expect(controller.isOnboardingCompleted(), isFalse);
+      expect(controller.userProfile, isNull);
+      expect(controller.activeSession, isNull);
+      expect(controller.history, isEmpty);
+    });
   });
 
-  testWidgets('BwfWorkoutApp loads HomeScreen cleanly', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
-    final storage = await StorageService.init();
-    final controller = WorkoutController(storage);
+  group('Onboarding & App Entry Tests', () {
+    testWidgets('Fresh install displays ProfileSetupScreen with guest and custom options', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
 
-    await tester.pumpWidget(BwfWorkoutApp(controller: controller));
-    await tester.pumpAndSettle();
-
-    if (find.text("Got it, Let's Train").evaluate().isNotEmpty) {
-      await tester.tap(find.text("Got it, Let's Train"));
+      await tester.pumpWidget(BwfWorkoutApp(controller: controller));
       await tester.pumpAndSettle();
-    }
 
-    expect(find.text('Recommended\nRoutine'), findsOneWidget);
-    expect(find.text('Start Workout'), findsOneWidget);
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Progressions'), findsOneWidget);
-    expect(find.text('History'), findsOneWidget);
+      // Should render ProfileSetupScreen
+      expect(find.text('Welcome to BWF Routine'), findsOneWidget);
+      expect(find.text('Save Profile & Start Training'), findsOneWidget);
+      expect(find.text('Continue as Guest'), findsOneWidget);
+      expect(find.textContaining('100% Private'), findsOneWidget);
+    });
 
-    // Tap Progressions tab to verify Roadmap design loads
-    await tester.tap(find.text('Progressions'));
-    await tester.pumpAndSettle();
+    testWidgets('Onboarding: continue as guest transitions to HomeScreen', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
 
-    expect(find.text('Roadmap'), findsOneWidget);
-    expect(find.text('STATUS'), findsOneWidget);
-    expect(find.text('TARGET UNLOCK'), findsOneWidget);
-    expect(find.text('DOCTRINE MET'), findsOneWidget);
+      await tester.pumpWidget(BwfWorkoutApp(controller: controller));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Continue as Guest'));
+      await tester.tap(find.text('Continue as Guest'));
+      await tester.pumpAndSettle();
+      await dismissChangelogIfNeeded(tester);
+
+      // Now on HomeScreen
+      expect(find.text('Recommended\nRoutine'), findsOneWidget);
+      expect(find.text('Hello, Guest Athlete'), findsOneWidget);
+      expect(find.text('Start Workout'), findsOneWidget);
+    });
+
+    testWidgets('Onboarding: save custom profile transitions to HomeScreen with custom name', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
+
+      await tester.pumpWidget(BwfWorkoutApp(controller: controller));
+      await tester.pumpAndSettle();
+
+      // Enter custom name
+      await tester.enterText(find.byType(TextField), 'Marcus');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save Profile & Start Training'));
+      await tester.tap(find.text('Save Profile & Start Training'));
+      await tester.pumpAndSettle();
+      await dismissChangelogIfNeeded(tester);
+
+      // Now on HomeScreen with Marcus
+      expect(find.text('Recommended\nRoutine'), findsOneWidget);
+      expect(find.text('Hello, Marcus'), findsOneWidget);
+      expect(find.text('0 Days'), findsOneWidget);
+      expect(find.text('STREAK'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen & Profile Sheet Tests', () {
+    testWidgets('HomeScreen profile sheet shows profile info and reset action', (WidgetTester tester) async {
+      final testProfile = UserProfile(
+        name: 'Manav',
+        isGuest: false,
+        fitnessGoal: 'Full Body Routine Progression',
+        createdAt: DateTime.now(),
+      );
+
+      SharedPreferences.setMockInitialValues({
+        'bwf_onboarding_completed': true,
+        'bwf_last_seen_version': '1.0.0',
+        'bwf_user_profile': jsonEncode(testProfile.toJson()),
+      });
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
+
+      await tester.pumpWidget(BwfWorkoutApp(controller: controller));
+      await tester.pumpAndSettle();
+      await dismissChangelogIfNeeded(tester);
+
+      expect(find.text('Hello, Manav'), findsOneWidget);
+
+      // Tap profile avatar container
+      final avatarFinder = find.byIcon(Icons.person_rounded);
+      expect(avatarFinder, findsOneWidget);
+      await tester.tap(avatarFinder);
+      await tester.pumpAndSettle();
+
+      // Profile modal sheet should be open
+      expect(find.text('Athlete Profile'), findsAtLeast(1));
+      expect(find.text('Full Body Routine Progression'), findsOneWidget);
+      expect(find.text('Manav'), findsOneWidget);
+      expect(find.text('Reset All Stats & Data'), findsOneWidget);
+      expect(find.textContaining('100% Private'), findsOneWidget);
+
+      // Tap Reset All Stats & Data
+      await tester.tap(find.text('Reset All Stats & Data'));
+      await tester.pumpAndSettle();
+
+      // Dialog confirmation
+      expect(find.text('Reset All Data?'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Reset Everything'), findsOneWidget);
+
+      // Confirm reset
+      await tester.tap(find.text('Reset Everything'));
+      await tester.pumpAndSettle();
+
+      // App should return to ProfileSetupScreen
+      expect(find.text('Welcome to BWF Routine'), findsOneWidget);
+      expect(find.text('Continue as Guest'), findsOneWidget);
+    });
   });
 
   testWidgets('ActiveWorkoutScreen renders workout components, default 0 reps, and pair switcher',
       (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'bwf_onboarding_completed': true,
+      'bwf_last_seen_version': '1.0.0',
+    });
     final storage = await StorageService.init();
     final controller = WorkoutController(storage);
 
@@ -175,7 +318,10 @@ void main() {
   });
 
   testWidgets('ProgressionLadderScreen renders roadmap, bento cluster, chips, and milestone deck', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'bwf_onboarding_completed': true,
+      'bwf_last_seen_version': '1.0.0',
+    });
     final storage = await StorageService.init();
     final controller = WorkoutController(storage);
 
@@ -192,53 +338,114 @@ void main() {
     expect(find.textContaining('Pull-up'), findsAtLeast(1));
   });
 
-  testWidgets('HistoryScreen renders heatmap, consistency bar, PR banner, timeline, and Reddit export', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
-    final storage = await StorageService.init();
-    final controller = WorkoutController(storage);
+  group('HistoryScreen Tests', () {
+    testWidgets('HistoryScreen renders clean 0 baseline stats when no workouts logged', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({
+        'bwf_onboarding_completed': true,
+        'bwf_last_seen_version': '1.0.0',
+      });
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
 
-    await tester.pumpWidget(MaterialApp(
-      home: HistoryScreen(controller: controller),
-    ));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(MaterialApp(
+        home: HistoryScreen(controller: controller),
+      ));
+      await tester.pumpAndSettle();
 
-    // Verify Header
-    expect(find.text('History & Logs'), findsOneWidget);
+      // Verify Header
+      expect(find.text('History & Logs'), findsOneWidget);
 
-    // Verify Weekly Consistency Bar
-    expect(find.text('WEEKLY CONSISTENCY'), findsOneWidget);
-    expect(find.text('4 Week Streak'), findsOneWidget);
+      // Verify Weekly Consistency Bar starts at 0
+      expect(find.text('WEEKLY CONSISTENCY'), findsOneWidget);
+      expect(find.text('0 Week Streak'), findsOneWidget);
 
-    // Verify Monthly Heatmap Card
-    expect(find.text('MONTHLY HEATMAP'), findsOneWidget);
-    expect(find.textContaining('Logged'), findsOneWidget);
-    expect(find.textContaining('Month Load:'), findsOneWidget);
+      // Verify Monthly Heatmap Card starts at 0
+      expect(find.text('MONTHLY HEATMAP'), findsOneWidget);
+      expect(find.textContaining('0 / '), findsOneWidget);
+      expect(find.textContaining('Month Load: 0 Strict Reps'), findsOneWidget);
 
-    // Verify Strict Reps Load Card
-    expect(find.text('STRICT REPS LOAD'), findsOneWidget);
-    expect(find.text('96 reps'), findsOneWidget);
-    expect(find.text('PEAK PR'), findsOneWidget);
+      // Verify Strict Reps Load Card starts at 0
+      expect(find.text('STRICT REPS LOAD'), findsOneWidget);
+      expect(find.text('0 reps'), findsOneWidget);
+      expect(find.text('BASELINE'), findsOneWidget);
 
-    // Verify Peak PR Achieved Banner
-    expect(find.text('PEAK PR ACHIEVED'), findsOneWidget);
-    expect(find.text('Celebrate'), findsOneWidget);
+      // Verify Peak PR shows Baseline state
+      expect(find.text('ESTABLISH YOUR BASELINE'), findsOneWidget);
+      expect(find.text('Ready'), findsOneWidget);
 
-    // Verify Recent Logs Timeline
-    expect(find.text('Recent Logs'), findsOneWidget);
-    expect(find.text('Wednesday, Oct 25'), findsOneWidget);
+      // Verify Timeline empty state
+      expect(find.text('Recent Logs'), findsOneWidget);
+      expect(find.text('No Workouts Logged Yet'), findsOneWidget);
 
-    // Verify Reddit Markdown Export Banner
-    expect(find.text('Reddit Markdown Export'), findsOneWidget);
-    expect(find.text('Copy'), findsOneWidget);
+      // Verify Reddit Markdown Export Banner exists and tapping copy shows friendly snackbar
+      expect(find.text('Reddit Markdown Export'), findsOneWidget);
+      expect(find.text('Copy'), findsOneWidget);
 
-    // Test Copy interaction
-    await tester.ensureVisible(find.text('Copy'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Copy'));
-    await tester.pump();
-    expect(find.text('Copied!'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Copy'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No workouts logged yet. Complete a workout first to export your log!'), findsOneWidget);
+    });
+
+    testWidgets('HistoryScreen renders populated session when workouts are logged', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final sampleSession = WorkoutSession(
+        id: 'session_1',
+        startTime: DateTime.now(),
+        durationSeconds: 45 * 60,
+        notes: 'Great calisthenics workout!',
+        sets: [
+          LoggedSet(exerciseId: 'pullup_1', exerciseName: 'Scapular Pulls', ladderId: 'pullup', setIndex: 0, reps: 8, isCompleted: true),
+          LoggedSet(exerciseId: 'pullup_1', exerciseName: 'Scapular Pulls', ladderId: 'pullup', setIndex: 1, reps: 8, isCompleted: true),
+          LoggedSet(exerciseId: 'pullup_1', exerciseName: 'Scapular Pulls', ladderId: 'pullup', setIndex: 2, reps: 8, isCompleted: true),
+        ],
+      );
+
+      SharedPreferences.setMockInitialValues({
+        'bwf_onboarding_completed': true,
+        'bwf_last_seen_version': '1.0.0',
+        'bwf_workout_history': jsonEncode([sampleSession.toJson()]),
+      });
+      final storage = await StorageService.init();
+      final controller = WorkoutController(storage);
+
+      await tester.pumpWidget(MaterialApp(
+        home: HistoryScreen(controller: controller),
+      ));
+      await tester.pumpAndSettle();
+
+      // Strict reps load should reflect 24 reps
+      expect(find.text('24 reps'), findsOneWidget);
+
+      // Verify Recent Logs header
+      expect(find.text('Recent Logs'), findsOneWidget);
+
+      // Tap timeline accordion to expand details
+      final prDayFinder = find.text('PR Day').last;
+      expect(prDayFinder, findsOneWidget);
+      await tester.tap(prDayFinder);
+      await tester.pumpAndSettle();
+
+      // Timeline should display the expanded session details
+      expect(find.text('BWF Recommended Routine'), findsOneWidget);
+      expect(find.text('View Full Log'), findsOneWidget);
+
+      // Reddit export should copy markdown
+      await tester.ensureVisible(find.text('Copy'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy'));
+      await tester.pump();
+      expect(find.text('Copied!'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    });
   });
 }
-

@@ -115,14 +115,48 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               tooltip: 'Minimize / Back',
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Active Workout',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.carbon,
-                letterSpacing: -0.3,
-              ),
+            title: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, _) {
+                final session = widget.controller.activeSession;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Active Workout',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.carbon,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    if (session != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.timer_outlined,
+                            size: 11,
+                            color: AppColors.actionDark,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            _formatDuration(session.durationSeconds),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.actionDark,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                );
+              },
             ),
             actions: [
               PopupMenuButton<String>(
@@ -478,44 +512,50 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.actionDark,
-                    shape: BoxShape.circle,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.actionDark,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  stageName.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.stone,
-                    letterSpacing: 1.2,
+                  const SizedBox(width: 8),
+                  Text(
+                    stageName.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.stone,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              pairTitle,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: AppColors.carbon,
-                letterSpacing: -0.6,
-                height: 1.2,
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                pairTitle,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.carbon,
+                  letterSpacing: -0.5,
+                  height: 1.2,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
+
+        const SizedBox(width: 8),
 
         // Live Elapsed Time Pill
         Container(
@@ -535,8 +575,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.timer_outlined, size: 16, color: AppColors.actionDark),
-              const SizedBox(width: 6),
+              const Icon(Icons.timer_outlined, size: 15, color: AppColors.actionDark),
+              const SizedBox(width: 5),
               Text(
                 _formatDuration(session.durationSeconds),
                 style: const TextStyle(
@@ -1450,9 +1490,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             children: [
               const Icon(Icons.timer_outlined, size: 20, color: Colors.white70),
               const SizedBox(width: 8),
-              Text(
-                'Resting (${_formatDuration(remaining)}) • Skip Rest & Begin Set',
-                style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+              Flexible(
+                child: Text(
+                  'Rest ${_formatDuration(remaining)} · Skip & Begin Set',
+                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -1515,30 +1558,35 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'WARM-UP • PHASE 1 OF 5',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.stone,
-                      letterSpacing: 1.2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'WARM-UP • PHASE 1 OF 5',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.stone,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Joint Mobility & Prep',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.carbon,
-                      letterSpacing: -0.6,
+                    SizedBox(height: 4),
+                    Text(
+                      'Joint Mobility & Prep',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.carbon,
+                        letterSpacing: -0.6,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(

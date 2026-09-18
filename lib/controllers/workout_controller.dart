@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/exercise.dart';
 import '../models/workout_session.dart';
+import '../models/user_profile.dart';
 import '../services/storage_service.dart';
 import '../data/bwf_routine_data.dart';
 
@@ -21,6 +22,7 @@ class WorkoutController extends ChangeNotifier {
   Map<String, String> _userProgressions = {};
   List<WorkoutSession> _history = [];
   WorkoutSession? _activeSession;
+  UserProfile? _userProfile;
   WorkoutStage _currentStage = WorkoutStage.warmup;
 
   // Active workout set tracker
@@ -42,6 +44,7 @@ class WorkoutController extends ChangeNotifier {
   Map<String, String> get userProgressions => _userProgressions;
   List<WorkoutSession> get history => _history;
   WorkoutSession? get activeSession => _activeSession;
+  UserProfile? get userProfile => _userProfile;
   WorkoutStage get currentStage => _currentStage;
   StorageService get storage => _storage;
   int get activePairStepIndex => _activePairStepIndex;
@@ -49,11 +52,13 @@ class WorkoutController extends ChangeNotifier {
   int get restRemainingSeconds => _restRemainingSeconds;
   int get restTotalSeconds => _restTotalSeconds;
   bool get isTimerRunning => _isTimerRunning;
+  bool isOnboardingCompleted() => _storage.isOnboardingCompleted();
 
   void _loadInitialData() {
     _userProgressions = _storage.getProgressionLevels();
     _history = _storage.getWorkoutHistory();
     _activeSession = _storage.getActiveDraft();
+    _userProfile = _storage.getUserProfile();
     if (_activeSession != null) {
       _startSessionDurationTimer();
     }
@@ -72,6 +77,30 @@ class WorkoutController extends ChangeNotifier {
     _userProgressions[ladderId] = exerciseId;
     await _storage.saveProgressionLevel(ladderId, exerciseId);
     notifyListeners();
+  }
+
+  // --- Profile Management ---
+
+  Future<void> saveProfile(UserProfile profile) async {
+    _userProfile = profile;
+    await _storage.saveUserProfile(profile);
+    await _storage.setOnboardingCompleted(true);
+    notifyListeners();
+  }
+
+  Future<void> saveGuestProfile() async {
+    final guestProfile = UserProfile.guest();
+    await saveProfile(guestProfile);
+  }
+
+  Future<void> resetAllData() async {
+    _sessionTimer?.cancel();
+    _timer?.cancel();
+    _activeSession = null;
+    _isTimerRunning = false;
+    _currentStage = WorkoutStage.warmup;
+    await _storage.resetAllData();
+    _loadInitialData();
   }
 
   // --- Workout Session Lifecycle ---
