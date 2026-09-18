@@ -2447,17 +2447,22 @@ class HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Share Button — triggers native share sheet
+          // Share Button — triggers native share sheet or copies to clipboard
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
+            onTap: () async {
               HapticFeedback.mediumImpact();
               if (sessionToExport != null) {
                 final md = _generateRedditMarkdown(sessionToExport);
-                Share.share(
-                  md,
-                  subject: 'BWF Recommended Routine Log',
-                );
+                try {
+                  await Share.share(
+                    md,
+                    subject: 'BWF Recommended Routine Log',
+                  );
+                } catch (_) {
+                  // Fallback: If native platform share plugin is unavailable, copy markdown to clipboard
+                  _copyRedditMarkdown(sessionToExport);
+                }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

@@ -86,10 +86,13 @@ class BwfWorkoutApp extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        // Limit text scaling to protect athletic UI layouts across devices
-        return MediaQuery.withClampedTextScaling(
-          minScaleFactor: 0.85,
-          maxScaleFactor: 1.25,
+        final mediaQueryData = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQueryData.copyWith(
+            textScaler: mediaQueryData.textScaler.clamp(
+              maxScaleFactor: 1.1,
+            ),
+          ),
           child: child ?? const SizedBox.shrink(),
         );
       },

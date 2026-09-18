@@ -25,12 +25,33 @@ class ProgressionLadderScreen extends StatefulWidget {
 
 class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
   late String _selectedLadderId;
+  String? _selectedPathId;
   final ScrollController _ladderScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _selectedLadderId = widget.initialLadderId ?? BwfRoutineData.pullupLadder.id;
+    _syncPathForLadder(_selectedLadderId);
+  }
+
+  void _syncPathForLadder(String ladderId) {
+    final ladder = BwfRoutineData.getLadder(ladderId);
+    final active = widget.controller.getSelectedExerciseForLadder(ladderId);
+    if (ladder.paths.isNotEmpty) {
+      final matchingPath = ladder.paths.firstWhere(
+        (p) => p.exerciseIds.contains(active.id),
+        orElse: () {
+          if (widget.controller.globalTrackMode == 'bodyweight' && ladder.paths.length > 1) {
+            return ladder.paths[1];
+          }
+          return ladder.paths.first;
+        },
+      );
+      _selectedPathId = matchingPath.id;
+    } else {
+      _selectedPathId = null;
+    }
   }
 
   @override
@@ -53,6 +74,9 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
     HapticFeedback.selectionClick();
     await widget.controller.setProgression(ladder.id, exercise.id);
     if (mounted) {
+      setState(() {
+        _syncPathForLadder(ladder.id);
+      });
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -93,77 +117,108 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         final int masteryPercent = (68 + (masteryRatio * 28)).round().clamp(25, 100);
         final int clearedDisplayCount = (clearedPairs).clamp(0, 6);
 
-        // Determine next target unlock for current ladder
+        // Resolve current path and path exercises for this ladder
+        ProgressionPath? currentPath;
+        if (currentLadder.paths.isNotEmpty) {
+          currentPath = currentLadder.paths.firstWhere(
+            (p) => p.id == _selectedPathId,
+            orElse: () => currentLadder.paths.first,
+          );
+        }
+        final pathExercises = currentPath != null
+            ? currentLadder.exercisesForPath(currentPath.id)
+            : currentLadder.exercises;
+
+        // Determine next target unlock for current ladder in this path
         Exercise? nextUnlockExercise;
-        final currentIndex = currentLadder.exercises.indexWhere((e) => e.id == activeExercise.id);
-        if (currentIndex != -1 && currentIndex + 1 < currentLadder.exercises.length) {
-          nextUnlockExercise = currentLadder.exercises[currentIndex + 1];
+        final currentIndex = pathExercises.indexWhere((e) => e.id == activeExercise.id);
+        if (currentIndex != -1 && currentIndex + 1 < pathExercises.length) {
+          nextUnlockExercise = pathExercises[currentIndex + 1];
+        } else if (currentIndex == -1 && pathExercises.isNotEmpty) {
+          final branchIndex = pathExercises.indexWhere((e) => e.isBranchPoint);
+          if (branchIndex != -1 && branchIndex + 1 < pathExercises.length) {
+            nextUnlockExercise = pathExercises[branchIndex + 1];
+          } else {
+            nextUnlockExercise = pathExercises.first;
+          }
         }
 
-        return Scaffold(
-          backgroundColor: AppColors.canvas,
-          body: SafeArea(
-            bottom: false,
-            child: Stack(
-              children: [
-                Scrollbar(
-                  controller: _ladderScrollController,
-                  child: SingleChildScrollView(
+        return PrimaryScrollController(
+          controller: _ladderScrollController,
+          child: Scaffold(
+            backgroundColor: AppColors.canvas,
+            body: SafeArea(
+              bottom: false,
+              child: Stack(
+                children: [
+                  Scrollbar(
                     controller: _ladderScrollController,
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      12,
-                      20,
-                      110 + MediaQuery.viewPaddingOf(context).bottom,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1. Header Section (Roadmap & Status)
-                        _buildHeaderSection(context, canPop, activeExercise.level),
-                        const SizedBox(height: 16),
+                    child: SingleChildScrollView(
+                      controller: _ladderScrollController,
+                      padding: EdgeInsets.fromLTRB(
+                        0,
+                        12,
+                        0,
+                        110 + MediaQuery.viewPaddingOf(context).bottom,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Header Section (Roadmap & Status)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _buildHeaderSection(context, canPop, activeExercise.level),
+                          ),
+                          const SizedBox(height: 16),
 
-                        // 2. Asymmetric Bento Hero Cluster (Status Gauge + Target Unlock + Doctrine Met)
-                        _buildBentoCluster(
-                          masteryPercent: masteryPercent,
-                          clearedPairsCount: clearedDisplayCount,
-                          activeExercise: activeExercise,
-                          nextUnlockExercise: nextUnlockExercise,
-                        ),
-                        const SizedBox(height: 18),
+                          // 2. Asymmetric Bento Hero Cluster (Status Gauge + Target Unlock + Doctrine Met)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _buildBentoCluster(
+                              masteryPercent: masteryPercent,
+                              clearedPairsCount: clearedDisplayCount,
+                              activeExercise: activeExercise,
+                              nextUnlockExercise: nextUnlockExercise,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
 
-                        // 3. Category Filter Chips (Horizontal Navigation)
-                        _buildCategoryFilterChips(),
-                        const SizedBox(height: 20),
+                          // 3. Category Filter Chips (Horizontal Navigation - Edge to Edge)
+                          _buildCategoryFilterChips(),
+                          const SizedBox(height: 20),
 
-                        // 4. Tactical Milestone Deck for Current Ladder
-                        _buildMilestoneDeck(currentLadder, activeExercise),
-                      ],
+                          // 4. Tactical Milestone Deck for Current Ladder
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _buildMilestoneDeck(currentLadder, activeExercise),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                // Progressive fade under status bar
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 16,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            AppColors.canvas,
-                            AppColors.canvas.withValues(alpha: 0.0),
-                          ],
+                  // Progressive fade under status bar
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 16,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppColors.canvas,
+                              AppColors.canvas.withValues(alpha: 0.0),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -646,12 +701,19 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           return const LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [Colors.white, Colors.white, Colors.transparent],
-            stops: [0.0, 0.90, 1.0],
+            colors: [
+              Colors.transparent,
+              Colors.white,
+              Colors.white,
+              Colors.transparent,
+            ],
+            stops: [0.0, 0.04, 0.94, 1.0],
           ).createShader(bounds);
         },
         blendMode: BlendMode.dstIn,
         child: ListView.separated(
+          clipBehavior: Clip.none,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           scrollDirection: Axis.horizontal,
           itemCount: ladders.length,
           separatorBuilder: (_, _) => const SizedBox(width: 8),
@@ -673,7 +735,10 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeInOut,
                     );
-                    setState(() => _selectedLadderId = l.id);
+                    setState(() {
+                      _selectedLadderId = l.id;
+                      _syncPathForLadder(l.id);
+                    });
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
@@ -718,17 +783,53 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
   // 4. TACTICAL MILESTONE DECK
   // ===========================================================================
   Widget _buildMilestoneDeck(ProgressionLadder currentLadder, Exercise activeExercise) {
-    final exercises = currentLadder.exercises;
-    final int activeLevel = activeExercise.level;
+    ProgressionPath? currentPath;
+    if (currentLadder.paths.isNotEmpty) {
+      currentPath = currentLadder.paths.firstWhere(
+        (p) => p.id == _selectedPathId,
+        orElse: () => currentLadder.paths.first,
+      );
+    }
 
-    final passed = exercises.where((e) => e.level < activeLevel).toList();
-    final current = exercises.firstWhere((e) => e.level == activeLevel, orElse: () => activeExercise);
-    final upcoming = exercises.where((e) => e.level > activeLevel).toList();
+    final pathExercises = currentPath != null
+        ? currentLadder.exercisesForPath(currentPath.id)
+        : currentLadder.exercises;
+
+    final int activeIndex = pathExercises.indexWhere((e) => e.id == activeExercise.id);
+    List<Exercise> passed;
+    Exercise? current;
+    List<Exercise> upcoming;
+
+    if (activeIndex != -1) {
+      passed = pathExercises.sublist(0, activeIndex);
+      current = pathExercises[activeIndex];
+      upcoming = pathExercises.sublist(activeIndex + 1);
+    } else {
+      // Active exercise is on another branch
+      final branchIndex = pathExercises.indexWhere((e) => e.isBranchPoint);
+      if (branchIndex != -1 && activeExercise.level >= pathExercises[branchIndex].level) {
+        passed = pathExercises.sublist(0, branchIndex + 1);
+        current = null;
+        upcoming = pathExercises.sublist(branchIndex + 1);
+      } else {
+        passed = pathExercises.where((e) => e.level < activeExercise.level).toList();
+        current = null;
+        upcoming = pathExercises.where((e) => e.level >= activeExercise.level).toList();
+      }
+    }
+
+    final int displayCurrentLevel = current?.level ?? activeExercise.level;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
+        // 1. General form doctrine tile
+        if (currentLadder.generalFormCues.isNotEmpty) ...[
+          _buildGeneralFormCuesTile(currentLadder),
+          const SizedBox(height: 14),
+        ],
+
+        // Section Header with Minimal Track Dropdown Button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -760,17 +861,66 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
               ),
             ),
             const SizedBox(width: 8),
+            _buildTrackDropdownButton(currentLadder, currentPath),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Text(
-              'Progression $activeLevel of ${exercises.length}',
+              'Progression $displayCurrentLevel of ${pathExercises.length}',
               style: const TextStyle(
-                fontSize: 11.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.stone,
               ),
             ),
+            if (currentPath?.equipment != null)
+              Flexible(
+                child: Text(
+                  currentPath!.equipment!,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.stone,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),
+
+        // Alternate Track Info Banner (if viewing an alternate track while active is on main track)
+        if (current == null) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.actionDark.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.actionDark.withValues(alpha: 0.12)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.alt_route_rounded, size: 20, color: AppColors.actionDark),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Active workout is on "${activeExercise.pathName}". Tap any milestone below to switch your active routine to this path.',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.carbon,
+                      height: 1.3,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
 
         // Completed Tiers (Passed)
         if (passed.isNotEmpty) ...[
@@ -796,9 +946,11 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           ],
         ],
 
-        // CURRENT FOCUS Tier - Elevated High-Priority Hero Card
-        _buildCurrentFocusHeroCard(current, currentLadder),
-        const SizedBox(height: 10),
+        // CURRENT FOCUS Tier - Elevated High-Priority Hero Card (if active in this path)
+        if (current != null) ...[
+          _buildCurrentFocusHeroCard(current, currentLadder),
+          const SizedBox(height: 10),
+        ],
 
         // Upcoming / Locked Tiers
         for (final u in upcoming) ...[
@@ -806,6 +958,262 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           const SizedBox(height: 8),
         ],
       ],
+    );
+  }
+
+  // --- Minimal Per-Exercise Track Dropdown / Popup Button ---
+  Widget _buildTrackDropdownButton(ProgressionLadder ladder, ProgressionPath? currentPath) {
+    if (ladder.paths.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    final currentPathName = currentPath?.name ?? ladder.paths.first.name;
+
+    // Short, clean display label
+    String buttonLabel = currentPathName;
+    if (buttonLabel.contains('Recommended')) {
+      buttonLabel = 'Recommended';
+    } else if (buttonLabel.contains('Bodyweight')) {
+      buttonLabel = 'Bodyweight';
+    } else if (buttonLabel.length > 14) {
+      buttonLabel = '${buttonLabel.substring(0, 12)}…';
+    }
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        popupMenuTheme: PopupMenuThemeData(
+          color: AppColors.surfaceWhite,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.borderSubtle),
+          ),
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.08),
+        ),
+      ),
+      child: PopupMenuButton<String>(
+        tooltip: 'Select Track',
+        offset: const Offset(0, 28),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.borderSubtle),
+        ),
+        onSelected: (selectedPathId) async {
+          HapticFeedback.selectionClick();
+          final selectedPath = ladder.paths.firstWhere(
+            (p) => p.id == selectedPathId,
+            orElse: () => ladder.paths.first,
+          );
+
+          setState(() {
+            _selectedPathId = selectedPath.id;
+          });
+
+          // Switch active progression for THIS exercise ladder only
+          final activeExercise = widget.controller.getSelectedExerciseForLadder(ladder.id);
+          if (!selectedPath.exerciseIds.contains(activeExercise.id)) {
+            final pathExercises = ladder.exercisesForPath(selectedPath.id);
+            final branchIndex = pathExercises.indexWhere((e) => e.isBranchPoint);
+            if (branchIndex != -1 && activeExercise.level >= pathExercises[branchIndex].level) {
+              final nextIndex = (branchIndex + 1 < pathExercises.length) ? branchIndex + 1 : branchIndex;
+              await widget.controller.setProgression(ladder.id, pathExercises[nextIndex].id);
+            } else {
+              final matching = pathExercises.firstWhere(
+                (e) => e.level == activeExercise.level,
+                orElse: () => pathExercises.first,
+              );
+              await widget.controller.setProgression(ladder.id, matching.id);
+            }
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${selectedPath.name} selected',
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                ),
+                duration: const Duration(milliseconds: 1400),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                backgroundColor: AppColors.actionDark,
+              ),
+            );
+          }
+        },
+        itemBuilder: (context) {
+          return ladder.paths.map((path) {
+            final bool isSelected = path.id == currentPath?.id;
+
+            return PopupMenuItem<String>(
+              value: path.id,
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      path.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? AppColors.carbon : AppColors.stone,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.check_rounded,
+                      size: 15,
+                      color: AppColors.actionDark,
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }).toList();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+          decoration: BoxDecoration(
+            color: AppColors.inset,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.borderSubtle),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                buttonLabel,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.carbon,
+                  letterSpacing: -0.1,
+                ),
+              ),
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.arrow_drop_down_rounded,
+                size: 15,
+                color: AppColors.stone,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- General Form Doctrine Tile ---
+  Widget _buildGeneralFormCuesTile(ProgressionLadder ladder) {
+    if (ladder.generalFormCues.isEmpty) return const SizedBox.shrink();
+
+    return Material(
+      color: AppColors.surfaceWhite,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppColors.borderSubtle),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          leading: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: AppColors.actionDark.withValues(alpha: 0.06),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.menu_book_rounded,
+              size: 15,
+              color: AppColors.actionDark,
+            ),
+          ),
+          title: const Text(
+            'Form Doctrine & Wiki Standards',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              color: AppColors.carbon,
+            ),
+          ),
+          subtitle: Text(
+            '${ladder.generalFormCues.length} cues straight from Reddit BWF Wiki',
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: AppColors.stone,
+            ),
+          ),
+          children: [
+            const Divider(height: 1, color: AppColors.borderSubtle),
+            const SizedBox(height: 10),
+            ...ladder.generalFormCues.map((cue) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    width: 5,
+                    height: 5,
+                    decoration: const BoxDecoration(
+                      color: AppColors.actionDark,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      cue,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.carbon,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            if (ladder.equipmentNote != null) ...[
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.inset,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.fitness_center_rounded, size: 14, color: AppColors.stone),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        ladder.equipmentNote!,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.stone,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -985,34 +1393,33 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
     );
   }
 
-  // --- Current Focus Hero Card ---
+  // --- Current Focus Hero Card (Simple, Clean, Focused) ---
   Widget _buildCurrentFocusHeroCard(Exercise exercise, ProgressionLadder ladder) {
     final String cue = exercise.formCues.isNotEmpty
         ? exercise.formCues.first
-        : 'Controlled execution • Dead hang to full contraction';
+        : exercise.description;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.actionDark, width: 2),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.actionDark, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Level circle, Title, CURRENT pill, Tempo pill
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Level Badge
               Container(
                 width: 28,
                 height: 28,
@@ -1024,13 +1431,13 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 child: Text(
                   '${exercise.level}',
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1041,157 +1448,90 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                           child: Text(
                             exercise.name,
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: AppColors.carbon,
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.2,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentMint,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'CURRENT',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
+                        if (exercise.isBranchPoint) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: AppColors.actionDark.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'BRANCH',
+                              style: TextStyle(
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.actionDark,
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      cue,
+                      '3 × ${exercise.minTargetReps}–${exercise.maxTargetReps} reps',
                       style: const TextStyle(
-                        fontSize: 11.5,
-                        color: AppColors.stone,
-                        height: 1.3,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accentMint,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
+              // Clean "Active" Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.inset,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.borderSubtle),
+                  color: AppColors.accentMintTint,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.accentMintBorder),
                 ),
                 child: const Text(
-                  'Tempo 3-0-1-0',
+                  'Active',
                   style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.stone,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.accentMint,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Rep Progress Stats & 3-Segment Progress Gauge
-          Container(
-            padding: const EdgeInsets.only(top: 10),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppColors.stoneBorder)),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: AppColors.stone,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        children: [
-                          const TextSpan(text: 'Current Peak: '),
-                          TextSpan(
-                            text: '${exercise.minTargetReps} / ${exercise.minTargetReps} / ${exercise.maxTargetReps} reps',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.carbon,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      'Goal: 3 × ${exercise.maxTargetReps} Strict',
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.carbon,
-                      ),
-                    ),
-                  ],
+          if (cue.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.inset,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                cue,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.stone,
+                  height: 1.35,
                 ),
-                const SizedBox(height: 8),
-
-                // Segmented 3-Set Gauge Bars
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: AppColors.actionDark,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Container(
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: AppColors.actionDark,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Container(
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: AppColors.trackRing,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: 0.88,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.actionDark,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1216,49 +1556,108 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: AppColors.inset,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.borderSubtle),
-              ),
-              child: const Icon(
-                Icons.lock_outline_rounded,
-                size: 14,
-                color: AppColors.stone,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Level ${exercise.level} • ${exercise.name}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.carbon,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.inset,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.borderSubtle),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Requires 3 × ${activeExercise.maxTargetReps} reps at Level ${exercise.level - 1}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.stone,
-                    ),
+                  child: const Icon(
+                    Icons.lock_outline_rounded,
+                    size: 14,
+                    color: AppColors.stone,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Level ${exercise.level} • ${exercise.name}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.carbon,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (exercise.isBranchPoint) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: AppColors.actionDark.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'BRANCH',
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.actionDark,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Requires 3 × ${activeExercise.maxTargetReps} reps • Tap to select',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.stone,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.stone),
+              ],
             ),
-            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.stone),
+            if (exercise.branchPoint != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.actionDark.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.actionDark.withValues(alpha: 0.12)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.alt_route_rounded, size: 15, color: AppColors.actionDark),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        exercise.branchPoint!,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          color: AppColors.carbon,
+                          height: 1.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1282,7 +1681,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           ),
         ),
         content: Text(
-          'Set "${exercise.name}" as your active exercise in routine for ${ladder.title}?',
+          'Set "${exercise.name}" (${exercise.pathName}) as your active exercise in routine for ${ladder.title}?',
           style: const TextStyle(
             fontSize: 13.5,
             color: AppColors.stone,

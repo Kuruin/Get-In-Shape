@@ -791,14 +791,39 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      currentExercise.name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.carbon,
-                        letterSpacing: -0.5,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            currentExercise.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.carbon,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                        if (currentExercise.isBranchPoint) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.actionDark,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'BRANCH POINT',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -813,6 +838,33 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (currentExercise.branchPoint != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.actionDark.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.actionDark.withValues(alpha: 0.15)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.alt_route_rounded, size: 14, color: AppColors.actionDark),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                currentExercise.branchPoint!,
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  color: AppColors.carbon,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

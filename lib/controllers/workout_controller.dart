@@ -37,6 +37,8 @@ class WorkoutController extends ChangeNotifier {
   // Session timer (total duration)
   Timer? _sessionTimer;
 
+  String _globalTrackMode = 'recommended';
+
   WorkoutController(this._storage) {
     _loadInitialData();
   }
@@ -48,6 +50,7 @@ class WorkoutController extends ChangeNotifier {
   WorkoutStage get currentStage => _currentStage;
   StorageService get storage => _storage;
   int get activePairStepIndex => _activePairStepIndex;
+  String get globalTrackMode => _globalTrackMode;
 
   int get restRemainingSeconds => _restRemainingSeconds;
   int get restTotalSeconds => _restTotalSeconds;
@@ -59,6 +62,7 @@ class WorkoutController extends ChangeNotifier {
     _history = _storage.getWorkoutHistory();
     _activeSession = _storage.getActiveDraft();
     _userProfile = _storage.getUserProfile();
+    _globalTrackMode = _storage.getGlobalTrackMode();
     if (_activeSession != null) {
       _startSessionDurationTimer();
     }
@@ -76,6 +80,37 @@ class WorkoutController extends ChangeNotifier {
   Future<void> setProgression(String ladderId, String exerciseId) async {
     _userProgressions[ladderId] = exerciseId;
     await _storage.saveProgressionLevel(ladderId, exerciseId);
+    notifyListeners();
+  }
+
+  Future<void> setGlobalTrackMode(String mode) async {
+    _globalTrackMode = mode;
+    await _storage.saveGlobalTrackMode(mode);
+
+    for (final ladder in BwfRoutineData.allLadders) {
+      if (ladder.paths.length <= 1) continue;
+      final currentExercise = getSelectedExerciseForLadder(ladder.id);
+      final targetPath = (mode == 'bodyweight' && ladder.paths.length > 1)
+          ? ladder.paths[1]
+          : ladder.paths.first;
+
+      if (!targetPath.exerciseIds.contains(currentExercise.id)) {
+        final pathExercises = ladder.exercisesForPath(targetPath.id);
+        final branchIndex = pathExercises.indexWhere((e) => e.isBranchPoint);
+        if (branchIndex != -1 && currentExercise.level >= pathExercises[branchIndex].level) {
+          final nextIndex = (branchIndex + 1 < pathExercises.length) ? branchIndex + 1 : branchIndex;
+          _userProgressions[ladder.id] = pathExercises[nextIndex].id;
+          await _storage.saveProgressionLevel(ladder.id, pathExercises[nextIndex].id);
+        } else {
+          final matching = pathExercises.firstWhere(
+            (e) => e.level == currentExercise.level,
+            orElse: () => pathExercises.first,
+          );
+          _userProgressions[ladder.id] = matching.id;
+          await _storage.saveProgressionLevel(ladder.id, matching.id);
+        }
+      }
+    }
     notifyListeners();
   }
 

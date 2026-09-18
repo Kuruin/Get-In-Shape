@@ -1,3 +1,21 @@
+class ProgressionPath {
+  final String id;
+  final String name; // e.g. "Recommended (Weighted)", "Alternate Path (Bodyweight)"
+  final String? subtitle; // e.g. "Progress with weights" or "Bodyweight leverage"
+  final String? branchNote; // e.g. "Branches after 3x8 Pull-ups"
+  final String? equipment;
+  final List<String> exerciseIds;
+
+  const ProgressionPath({
+    required this.id,
+    required this.name,
+    this.subtitle,
+    this.branchNote,
+    this.equipment,
+    required this.exerciseIds,
+  });
+}
+
 class Exercise {
   final String id;
   final String name;
@@ -10,6 +28,10 @@ class Exercise {
   final String description;
   final List<String> formCues;
   final String videoSearchQuery;
+  final String pathId; // 'main', 'alt_1', 'alt_2', etc.
+  final String pathName; // e.g. 'Recommended Path', 'Alternate Path 1', etc.
+  final String? branchPoint; // e.g. "After you reach 3x8 Pull-ups..."
+  final bool isBranchPoint; // true if this exercise is the milestone where paths diverge
 
   const Exercise({
     required this.id,
@@ -23,6 +45,10 @@ class Exercise {
     required this.description,
     required this.formCues,
     required this.videoSearchQuery,
+    this.pathId = 'main',
+    this.pathName = 'Recommended Path',
+    this.branchPoint,
+    this.isBranchPoint = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +63,10 @@ class Exercise {
     'description': description,
     'formCues': formCues,
     'videoSearchQuery': videoSearchQuery,
+    'pathId': pathId,
+    'pathName': pathName,
+    'branchPoint': branchPoint,
+    'isBranchPoint': isBranchPoint,
   };
 
   factory Exercise.fromJson(Map<String, dynamic> json) => Exercise(
@@ -51,6 +81,10 @@ class Exercise {
     description: json['description'] as String,
     formCues: (json['formCues'] as List<dynamic>).map((e) => e.toString()).toList(),
     videoSearchQuery: json['videoSearchQuery'] as String,
+    pathId: json['pathId'] as String? ?? 'main',
+    pathName: json['pathName'] as String? ?? 'Recommended Path',
+    branchPoint: json['branchPoint'] as String?,
+    isBranchPoint: json['isBranchPoint'] as bool? ?? false,
   );
 }
 
@@ -58,9 +92,12 @@ class ProgressionLadder {
   final String id;
   final String title;
   final String movementType; // e.g. "Vertical Pull", "Quad Dominant"
-  final String pairCategory; // "First Pair", "Second Pair", "Third Pair", "Core Triplet"
+  final String pairCategory; // "First Pair", "Second Pair", "Third Pair", "Core Triplet", "Skill Work"
   final int defaultRestSeconds; // 90 for pairs, 60 for triplet
-  final List<Exercise> exercises;
+  final List<Exercise> exercises; // Complete list of all exercises for this ladder
+  final List<ProgressionPath> paths; // The distinct paths (Recommended vs Alternates)
+  final List<String> generalFormCues; // Official general form cues from reddit wiki
+  final String? equipmentNote;
 
   const ProgressionLadder({
     required this.id,
@@ -69,7 +106,17 @@ class ProgressionLadder {
     required this.pairCategory,
     required this.defaultRestSeconds,
     required this.exercises,
+    this.paths = const [],
+    this.generalFormCues = const [],
+    this.equipmentNote,
   });
+
+  /// Get exercises for a specific path ID
+  List<Exercise> exercisesForPath(String pathId) {
+    if (paths.isEmpty) return exercises;
+    final path = paths.firstWhere((p) => p.id == pathId, orElse: () => paths.first);
+    return exercises.where((e) => path.exerciseIds.contains(e.id)).toList();
+  }
 }
 
 class WarmupExercise {

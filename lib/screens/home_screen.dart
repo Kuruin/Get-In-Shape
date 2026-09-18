@@ -1448,6 +1448,10 @@ class _HomeScreenState extends State<HomeScreen> {
         pairLadders = [BwfRoutineData.rowLadder, BwfRoutineData.pushupLadder];
         pairBadgeLabel = "Today's Third Pair (90s Rest)";
         break;
+      case 4:
+        pairLadders = [BwfRoutineData.handstandLadder, BwfRoutineData.lsitLadder];
+        pairBadgeLabel = "Skill Day Routine (Handstand & L-sit)";
+        break;
       default:
         pairLadders = [
           BwfRoutineData.antiExtensionLadder,
@@ -1531,6 +1535,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildPairTab('Pair 3', 2),
                 const SizedBox(width: 8),
                 _buildPairTab('Core Triplet', 3),
+                const SizedBox(width: 8),
+                _buildPairTab('Skill Work', 4),
               ],
             ),
           ),
@@ -1701,14 +1707,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      'Level ${exercise.level} · ${exercise.name}',
-                      style: TextStyle(
-                        fontSize: isCompact ? 11 : 11.5,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.stoneMuted,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Level ${exercise.level} · ${exercise.name}',
+                            style: TextStyle(
+                              fontSize: isCompact ? 11 : 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.stoneMuted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (exercise.pathName != 'Recommended Path' && exercise.pathName != 'Recommended Progression') ...[
+                          const SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: AppColors.stoneTint,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              exercise.pathName,
+                              style: const TextStyle(
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.obsidian,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

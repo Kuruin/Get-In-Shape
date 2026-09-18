@@ -11,6 +11,7 @@ class StorageService {
   static const String _keyLastSeenVersion = 'bwf_last_seen_version';
   static const String _keyUserProfile = 'bwf_user_profile';
   static const String _keyOnboardingCompleted = 'bwf_onboarding_completed';
+  static const String _keyGlobalTrackMode = 'bwf_global_track_mode';
 
   final SharedPreferences _prefs;
 
@@ -149,12 +150,22 @@ class StorageService {
     await _prefs.setBool(_keyOnboardingCompleted, completed);
   }
 
+  // Track Mode: 'recommended' vs 'bodyweight'
+  String getGlobalTrackMode() {
+    return _prefs.getString(_keyGlobalTrackMode) ?? 'recommended';
+  }
+
+  Future<void> saveGlobalTrackMode(String mode) async {
+    await _prefs.setString(_keyGlobalTrackMode, mode);
+  }
+
   // Complete Reset of All Stats, History, Drafts, and Profile
   Future<void> resetAllData() async {
     await _prefs.remove(_keyWorkoutHistory);
     await _prefs.remove(_keyActiveDraft);
     await _prefs.remove(_keyProgressionLevels);
     await _prefs.remove(_keyUserProfile);
+    await _prefs.remove(_keyGlobalTrackMode);
     await _prefs.setBool(_keyOnboardingCompleted, false);
   }
 }
