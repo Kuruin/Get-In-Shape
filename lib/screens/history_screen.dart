@@ -12,6 +12,7 @@ import '../controllers/workout_controller.dart';
 import '../data/bwf_routine_data.dart';
 import '../utils/formatters.dart';
 import '../widgets/version_indicator.dart';
+import 'active_workout_screen.dart';
 
 typedef _HColors = AppColors;
 
@@ -809,6 +810,79 @@ class HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (widget.controller.activeSession != null) ...[
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ActiveWorkoutScreen(
+                                        controller: widget.controller),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 14),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _HColors.accentMintTint,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                      color: _HColors.accentMintBorder),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: _HColors.accentMint,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Workout is in progress',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: _HColors.accentMintDark,
+                                            letterSpacing: -0.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Tap to view',
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: _HColors.accentMintDark
+                                                .withValues(alpha: 0.8),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 11,
+                                          color: _HColors.accentMintDark,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                           // 1. Floating Horizontal Weekly Consistency Chip Bar
                           _buildWeeklyConsistencyBar(realHistory),
                           const SizedBox(height: 14),

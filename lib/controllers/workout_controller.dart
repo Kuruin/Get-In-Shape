@@ -82,6 +82,47 @@ class WorkoutController extends ChangeNotifier {
     return (workoutsThisWeek % 3) + 1;
   }
 
+  /// Whether a workout session was completed on the current calendar day
+  bool get isWorkoutCompletedToday {
+    final now = DateTime.now();
+    return _history.any((session) {
+      final d = session.endTime ?? session.startTime;
+      return d.year == now.year && d.month == now.month && d.day == now.day;
+    });
+  }
+
+  /// Workout session completed today (if any)
+  WorkoutSession? get todaysCompletedWorkout {
+    final now = DateTime.now();
+    try {
+      return _history.firstWhere((session) {
+        final d = session.endTime ?? session.startTime;
+        return d.year == now.year && d.month == now.month && d.day == now.day;
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Progress percent for today (0 to 100).
+  /// Resets every day. If an active workout is running today, reflects completed sets %.
+  /// If a workout has been completed today, returns 100%.
+  /// Otherwise (new day or no workout today), returns 0%.
+  int get todayProgressPercent {
+    if (_activeSession != null) {
+      final totalSets = _activeSession!.sets.length;
+      final completedSets =
+          _activeSession!.sets.where((s) => s.isCompleted).length;
+      if (totalSets > 0) {
+        return ((completedSets / totalSets) * 100).round();
+      }
+    }
+    if (isWorkoutCompletedToday) {
+      return 100;
+    }
+    return 0;
+  }
+
   void _loadInitialData() {
     _userProgressions = _storage.getProgressionLevels();
     _history = _storage.getWorkoutHistory();

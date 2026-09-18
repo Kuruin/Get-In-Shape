@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
 import '../models/exercise.dart';
 import '../theme/app_theme.dart';
 import '../data/bwf_routine_data.dart';
@@ -22,15 +23,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
-  int _selectedPairIndex = 0; // 0: Pair 1, 1: Pair 2, 2: Pair 3, 3: Core Triplet
+  int _selectedPairIndex =
+      0; // 0: Pair 1, 1: Pair 2, 2: Pair 3, 3: Core Triplet
   final ScrollController _homeScrollController = ScrollController();
-  final GlobalKey<ProgressionLadderScreenState> _progressionLadderKey = GlobalKey();
+  final GlobalKey<ProgressionLadderScreenState> _progressionLadderKey =
+      GlobalKey();
   final GlobalKey<HistoryScreenState> _historyKey = GlobalKey();
+  bool _hasCheckedActiveWorkoutOnLaunch = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkChangelog());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkChangelog();
+      _checkActiveWorkoutOnLaunch();
+    });
+  }
+
+  void _checkActiveWorkoutOnLaunch() {
+    if (!mounted) return;
+    if (widget.controller.activeSession != null &&
+        !_hasCheckedActiveWorkoutOnLaunch) {
+      _hasCheckedActiveWorkoutOnLaunch = true;
+      _showActiveWorkoutDialog(context);
+    }
   }
 
   void _checkChangelog() {
@@ -79,7 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.accentMintTint,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.bolt_rounded, color: AppColors.obsidian, size: 20),
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        color: AppColors.obsidian,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -94,9 +114,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildChangelogItem('Warm Tactical Aesthetic', 'Crafted high-contrast, distraction-free surfaces inspired by athletic discipline.'),
-                _buildChangelogItem('Alternating Routine Pairs', 'Authentic BWF paired sets with automatic 90s rest and progression switching.'),
-                _buildChangelogItem('Offline Persistence & Reddit Export', 'Zero data loss with local drafts and one-tap formatted Reddit markdown logs.'),
+                _buildChangelogItem(
+                  'Warm Tactical Aesthetic',
+                  'Crafted high-contrast, distraction-free surfaces inspired by athletic discipline.',
+                ),
+                _buildChangelogItem(
+                  'Alternating Routine Pairs',
+                  'Authentic BWF paired sets with automatic 90s rest and progression switching.',
+                ),
+                _buildChangelogItem(
+                  'Offline Persistence & Reddit Export',
+                  'Zero data loss with local drafts and one-tap formatted Reddit markdown logs.',
+                ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
@@ -121,14 +150,29 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 4, right: 10),
-            child: Icon(Icons.check_circle_rounded, color: AppColors.accentMint, size: 16),
+            child: Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.accentMint,
+              size: 16,
+            ),
           ),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(fontSize: 13.5, color: AppColors.stone, height: 1.4, fontFamily: 'Manrope'),
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  color: AppColors.stone,
+                  height: 1.4,
+                  fontFamily: 'Manrope',
+                ),
                 children: [
-                  TextSpan(text: '$title: ', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.obsidian)),
+                  TextSpan(
+                    text: '$title: ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.obsidian,
+                    ),
+                  ),
                   TextSpan(text: description),
                 ],
               ),
@@ -136,6 +180,387 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // --- Active Workout In-Progress Dialog ---
+  void _showActiveWorkoutDialog(BuildContext context) {
+    final session = widget.controller.activeSession;
+    if (session == null) return;
+
+    final now = DateTime.now();
+    final elapsedMinutes = session.durationSeconds > 0
+        ? (session.durationSeconds ~/ 60)
+        : now.difference(session.startTime).inMinutes;
+    final totalSets = session.sets.length;
+    final completedSets = session.sets.where((s) => s.isCompleted).length;
+    final percent = totalSets > 0
+        ? ((completedSets / totalSets) * 100).round()
+        : 0;
+    final startTimeStr = DateFormat.jm().format(session.startTime);
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dlgCtx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceCard,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.stoneBorder),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1E1E232A),
+                  blurRadius: 28,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header badge + close
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentMintTint,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.accentMintBorder),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.accentMint,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'WORKOUT RUNNING',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.accentMintDark,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: AppColors.stoneMuted,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(dlgCtx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                const Text(
+                  'Workout In Progress',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.obsidian,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'A workout session is currently active. You can resume right where you left off or discard it to start fresh.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.stoneMuted,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Stats capsule
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.stoneTint,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.stoneLight),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildMiniStat(
+                            icon: Icons.play_circle_outline_rounded,
+                            label: 'Started',
+                            value: startTimeStr,
+                          ),
+                          _buildMiniStat(
+                            icon: Icons.timer_outlined,
+                            label: 'Elapsed',
+                            value: '$elapsedMinutes min',
+                          ),
+                          _buildMiniStat(
+                            icon: Icons.checklist_rounded,
+                            label: 'Progress',
+                            value: '$completedSets / $totalSets sets',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Progress Bar
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: totalSets > 0
+                              ? completedSets / totalSets
+                              : 0.0,
+                          backgroundColor: AppColors.stoneBorder,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.obsidian,
+                          ),
+                          minHeight: 6,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '$percent% completed',
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.stoneMuted,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    // Discard button
+                    Expanded(
+                      flex: 4,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.accentRed,
+                          side: BorderSide(
+                            color: AppColors.accentRed.withValues(alpha: 0.3),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () async {
+                          Navigator.pop(dlgCtx);
+                          final confirm = await _showConfirmDiscardSheet(
+                            context,
+                          );
+                          if (confirm == true) {
+                            await widget.controller.discardWorkout();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Workout discarded. Progress reset.',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text(
+                          'Discard',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Resume button
+                    Expanded(
+                      flex: 6,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.obsidian,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(dlgCtx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ActiveWorkoutScreen(
+                                controller: widget.controller,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                        label: const Text(
+                          'Resume',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showConfirmDiscardSheet(BuildContext context) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.stoneLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Discard Current Workout?',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.obsidian,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'All recorded sets and progress for this active session will be removed. This cannot be undone.',
+              style: TextStyle(fontSize: 13, color: AppColors.stoneMuted),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accentRed,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Discard'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniStat({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: 16, color: AppColors.stoneMuted),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.stoneMuted,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: AppColors.obsidian,
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 
@@ -184,7 +609,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
-                        child: Icon(Icons.person_rounded, color: AppColors.accentMint, size: 28),
+                        child: Icon(
+                          Icons.person_rounded,
+                          color: AppColors.accentMint,
+                          size: 28,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -212,13 +641,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Navigator.pop(sheetCtx);
                                   _showEditNameDialog(context);
                                 },
-                                child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.stoneMuted),
+                                child: const Icon(
+                                  Icons.edit_rounded,
+                                  size: 16,
+                                  color: AppColors.stoneMuted,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            profile?.isGuest == true ? 'Guest Athlete (Local Account)' : 'Athlete Profile',
+                            profile?.isGuest == true
+                                ? 'Guest Athlete (Local Account)'
+                                : 'Athlete Profile',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -270,7 +705,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Local device storage badge
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.emerald50,
                     borderRadius: BorderRadius.circular(12),
@@ -278,7 +716,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.shield_outlined, size: 16, color: AppColors.emerald700),
+                      Icon(
+                        Icons.shield_outlined,
+                        size: 16,
+                        color: AppColors.emerald700,
+                      ),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -373,7 +815,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.accentRed,
-                      side: const BorderSide(color: AppColors.accentRed, width: 1.5),
+                      side: const BorderSide(
+                        color: AppColors.accentRed,
+                        width: 1.5,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -385,7 +830,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.delete_forever_rounded, size: 18, color: AppColors.accentRed),
+                        Icon(
+                          Icons.delete_forever_rounded,
+                          size: 18,
+                          color: AppColors.accentRed,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Reset All Stats & Data',
@@ -414,10 +863,16 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (dialogCtx) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: AppColors.accentRed, size: 24),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.accentRed,
+                size: 24,
+              ),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -442,20 +897,31 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.stoneMuted, fontWeight: FontWeight.w700)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: AppColors.stoneMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accentRed,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () async {
                 Navigator.pop(dialogCtx);
                 Navigator.pop(sheetCtx);
                 await widget.controller.resetAllData();
               },
-              child: const Text('Reset Everything', style: TextStyle(fontWeight: FontWeight.w800)),
+              child: const Text(
+                'Reset Everything',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
           ],
         );
@@ -464,16 +930,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showEditNameDialog(BuildContext context) {
-    final textController = TextEditingController(text: widget.controller.userProfile?.name ?? '');
+    final textController = TextEditingController(
+      text: widget.controller.userProfile?.name ?? '',
+    );
     showDialog(
       context: context,
       builder: (dialogCtx) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text(
             'Edit Athlete Name',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.obsidian),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.obsidian,
+            ),
           ),
           content: TextField(
             controller: textController,
@@ -483,33 +957,49 @@ class _HomeScreenState extends State<HomeScreen> {
               hintText: 'Enter name',
               filled: true,
               fillColor: AppColors.stoneTint,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.stoneMuted, fontWeight: FontWeight.w700)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: AppColors.stoneMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.obsidian,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () async {
                 final trimmed = textController.text.trim();
                 if (trimmed.isNotEmpty) {
                   final current = widget.controller.userProfile;
                   if (current != null) {
-                    await widget.controller.saveProfile(current.copyWith(name: trimmed));
+                    await widget.controller.saveProfile(
+                      current.copyWith(name: trimmed),
+                    );
                   }
                 }
                 if (dialogCtx.mounted) {
                   Navigator.pop(dialogCtx);
                 }
               },
-              child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w800)),
+              child: const Text(
+                'Save',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
           ],
         );
@@ -623,21 +1113,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final activeDraft = controller.activeSession;
     final history = controller.history;
 
-    // Calculate routine progress
-    int totalSets = 0;
-    int completedSets = 0;
-    if (activeDraft != null) {
-      totalSets = activeDraft.sets.length;
-      completedSets = activeDraft.sets.where((s) => s.isCompleted).length;
-    }
-    final int progressPercent = totalSets > 0
-        ? ((completedSets / totalSets) * 100).round()
-        : (history.isNotEmpty ? 100 : 0);
+    // Routine progress: resets every day to 0%, reaches 100% when workout completed today
+    final int progressPercent = controller.todayProgressPercent;
 
     final int streakDays = history.isNotEmpty ? history.length : 0;
     final int totalReps = history.fold(0, (sum, s) => sum + s.totalReps);
 
-    final String todayDateStr = DateFormat('EEEE, MMM d').format(DateTime.now());
+    final String todayDateStr = DateFormat('EEEE, MMM d')
+        .format(DateTime.now());
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -672,11 +1155,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: verticalSpacing),
 
                     // Hero Challenge Banner
-                    _buildHeroCard(context, activeDraft, progressPercent, isCompact),
+                    _buildHeroCard(
+                      context,
+                      activeDraft,
+                      progressPercent,
+                      isCompact,
+                    ),
                     SizedBox(height: isCompact ? 18 : 24),
 
                     // Readiness & Metrics Grid
-                    _buildReadinessMetrics(streakDays, totalReps, isCompact, isWide),
+                    _buildReadinessMetrics(
+                      streakDays,
+                      totalReps,
+                      isCompact,
+                      isWide,
+                    ),
                     SizedBox(height: isCompact ? 18 : 24),
 
                     // Current Routine Pairs
@@ -799,14 +1292,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Notification Bell Button
+        // Action Button: Notification Bell
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
             HapticFeedback.selectionClick();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('BWF Recommended Routine is fully synced and ready!'),
+                content: Text(
+                  'BWF Recommended Routine is fully synced and ready!',
+                ),
                 duration: Duration(seconds: 2),
               ),
             );
@@ -884,6 +1379,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final double cardPadding = isCompact ? 16 : 20;
     final double progressContainerSize = isCompact ? 80 : 90;
     final double ringSize = isCompact ? 50 : 58;
+    final bool isCompletedToday = widget.controller.isWorkoutCompletedToday;
 
     return Container(
       padding: EdgeInsets.all(cardPadding),
@@ -914,17 +1410,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: AppColors.mutedGray,
                 ),
               ),
-              Container(
-                width: 28,
-                height: 28,
-                decoration: const BoxDecoration(
-                  color: AppColors.stoneTint,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.more_horiz_rounded,
-                  size: 16,
-                  color: AppColors.obsidian,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: activeDraft != null
+                    ? () => _showActiveWorkoutDialog(context)
+                    : null,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: const BoxDecoration(
+                    color: AppColors.stoneTint,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    activeDraft != null
+                        ? Icons.info_outline_rounded
+                        : Icons.more_horiz_rounded,
+                    size: 16,
+                    color: AppColors.obsidian,
+                  ),
                 ),
               ),
             ],
@@ -940,19 +1444,63 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentMintTint,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.accentMintBorder),
-                      ),
-                      child: const Text(
-                        'Full Body RR',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.accentMintDark,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: activeDraft != null
+                          ? () => _showActiveWorkoutDialog(context)
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (activeDraft != null || isCompletedToday)
+                              ? AppColors.accentMintTint
+                              : AppColors.stoneTint,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: (activeDraft != null || isCompletedToday)
+                                ? AppColors.accentMintBorder
+                                : AppColors.stoneBorder,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (activeDraft != null) ...[
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.accentMint,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                            ] else if (isCompletedToday) ...[
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 12,
+                                color: AppColors.accentMintDark,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              activeDraft != null
+                                  ? 'Active • Tap for Status'
+                                  : (isCompletedToday
+                                        ? 'Completed Today'
+                                        : 'Full Body RR'),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: (activeDraft != null || isCompletedToday)
+                                    ? AppColors.accentMintDark
+                                    : AppColors.obsidian,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -976,14 +1524,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(
-                              Icons.access_time_filled_rounded,
+                            Icon(
+                              activeDraft != null
+                                  ? Icons.timer_outlined
+                                  : (isCompletedToday
+                                        ? Icons.check_circle_outline_rounded
+                                        : Icons.access_time_filled_rounded),
                               size: 13,
                               color: AppColors.stoneMuted,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              activeDraft != null ? 'Active' : '3 hours',
+                              activeDraft != null
+                                  ? 'In Progress'
+                                  : (isCompletedToday ? 'Finished' : '~1 hour'),
                               style: const TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
@@ -1037,22 +1591,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircularProgressIndicator(
                         value: progressPercent / 100,
                         backgroundColor: AppColors.trackRing,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.obsidian,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progressPercent == 100
+                              ? AppColors.accentMint
+                              : AppColors.obsidian,
                         ),
                         strokeWidth: isCompact ? 4.0 : 4.5,
                         strokeCap: StrokeCap.round,
                       ),
                     ),
-                    Text(
-                      '$progressPercent%',
-                      style: TextStyle(
-                        fontSize: isCompact ? 11.5 : 12,
-                        fontWeight: FontWeight.w900,
+                    if (progressPercent == 100)
+                      const Icon(
+                        Icons.check_rounded,
+                        size: 22,
                         color: AppColors.obsidian,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                      )
+                    else
+                      Text(
+                        '$progressPercent%',
+                        style: TextStyle(
+                          fontSize: isCompact ? 11.5 : 12,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.obsidian,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -1060,20 +1623,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: isCompact ? 14 : 16),
 
-          // Bottom Continue Action Button (with arrow circle)
+          // Bottom Action Button
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.selectionClick();
-              if (activeDraft == null) {
+              if (activeDraft != null) {
+                _showActiveWorkoutDialog(context);
+              } else {
                 widget.controller.startWorkout();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ActiveWorkoutScreen(controller: widget.controller),
+                  ),
+                );
               }
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
-                ),
-              );
             },
             child: Container(
               width: double.infinity,
@@ -1093,7 +1659,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    activeDraft != null ? 'Continue the workout' : 'Start Workout',
+                    activeDraft != null
+                        ? 'Continue the workout'
+                        : (isCompletedToday
+                              ? 'Workout Completed • Start Another'
+                              : 'Start Workout'),
                     style: TextStyle(
                       fontSize: isCompact ? 12.5 : 13,
                       fontWeight: FontWeight.w800,
@@ -1108,8 +1678,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
+                    child: Icon(
+                      activeDraft != null
+                          ? Icons.play_arrow_rounded
+                          : (isCompletedToday
+                                ? Icons.replay_rounded
+                                : Icons.arrow_forward_rounded),
                       size: 16,
                       color: AppColors.obsidian,
                     ),
@@ -1180,8 +1754,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _buildMetricTile(
                     title: 'RECOVERY',
-                    value: widget.controller.history.isNotEmpty ? '92%' : '100%',
-                    subtitle: widget.controller.history.isNotEmpty ? 'Ready for Load' : 'Fresh & Primed',
+                    value: widget.controller.history.isNotEmpty
+                        ? '92%'
+                        : '100%',
+                    subtitle: widget.controller.history.isNotEmpty
+                        ? 'Ready for Load'
+                        : 'Fresh & Primed',
                     icon: Icons.favorite_rounded,
                     iconColor: AppColors.accentMintDark,
                     iconBg: AppColors.accentMintTint,
@@ -1205,9 +1783,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(width: tileGap),
-                Expanded(
-                  child: _buildVolumeTile(totalReps, isCompact),
-                ),
+                Expanded(child: _buildVolumeTile(totalReps, isCompact)),
               ],
             ),
           ],
@@ -1362,16 +1938,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: totalReps > 0 ? (totalReps / 500).clamp(0.0, 1.0) : 0.0,
+                    value: totalReps > 0
+                        ? (totalReps / 500).clamp(0.0, 1.0)
+                        : 0.0,
                     backgroundColor: AppColors.trackRing,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentMint),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.accentMint,
+                    ),
                     minHeight: 5,
                   ),
                 ),
               ),
               const SizedBox(width: 6),
               Text(
-                totalReps > 0 ? '${((totalReps / 500).clamp(0.0, 1.0) * 100).round()}%' : '0%',
+                totalReps > 0
+                    ? '${((totalReps / 500).clamp(0.0, 1.0) * 100).round()}%'
+                    : '0%',
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
@@ -1406,7 +1988,10 @@ class _HomeScreenState extends State<HomeScreen> {
         pairBadgeLabel = "Today's Third Pair (90s Rest)";
         break;
       case 4:
-        pairLadders = [BwfRoutineData.handstandLadder, BwfRoutineData.lsitLadder];
+        pairLadders = [
+          BwfRoutineData.handstandLadder,
+          BwfRoutineData.lsitLadder,
+        ];
         pairBadgeLabel = "Skill Day Routine (Handstand & L-sit)";
         break;
       default:
@@ -1419,7 +2004,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final exercises = pairLadders
-        .map((ladder) => widget.controller.getSelectedExerciseForLadder(ladder.id))
+        .map(
+          (ladder) => widget.controller.getSelectedExerciseForLadder(ladder.id),
+        )
         .toList();
 
     return Column(
@@ -1441,15 +2028,24 @@ class _HomeScreenState extends State<HomeScreen> {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticFeedback.selectionClick();
-                if (widget.controller.activeSession == null) {
-                  widget.controller.startWorkout();
+                if (widget.controller.activeSession != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ActiveWorkoutScreen(controller: widget.controller),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No workout is currently active. Tap "Start Workout" above to begin your session.',
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ActiveWorkoutScreen(controller: widget.controller),
-                  ),
-                );
               },
               child: const Text(
                 'Log Reps',
@@ -1470,11 +2066,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return const LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
-              colors: [
-                Colors.white,
-                Colors.white,
-                Colors.transparent,
-              ],
+              colors: [Colors.white, Colors.white, Colors.transparent],
               stops: [0.0, 0.90, 1.0],
             ).createShader(bounds);
           },
@@ -1513,10 +2105,80 @@ class _HomeScreenState extends State<HomeScreen> {
                 offset: const Offset(0, 6),
               ),
             ],
-            border: Border.all(color: AppColors.stoneBorder.withValues(alpha: 0.8)),
+            border: Border.all(
+              color: AppColors.stoneBorder.withValues(alpha: 0.8),
+            ),
           ),
           child: Column(
             children: [
+              if (widget.controller.activeSession != null) ...[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    _showActiveWorkoutDialog(context);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentMintTint,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.accentMintBorder),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.accentMint,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Workout is in progress',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.accentMintDark,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Tap to view',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.accentMintDark.withValues(
+                                  alpha: 0.8,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 11,
+                              color: AppColors.accentMintDark,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               for (int i = 0; i < pairLadders.length; i++) ...[
                 if (i > 0)
                   Padding(
@@ -1526,7 +2188,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         const Divider(height: 1, color: AppColors.stoneBorder),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.inset,
                             borderRadius: BorderRadius.circular(20),
@@ -1543,7 +2208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 i == 1
-                                    ? (pairLadders.length == 3 ? 'Rest 60s & Alternate' : pairBadgeLabel)
+                                    ? (pairLadders.length == 3
+                                          ? 'Rest 60s & Alternate'
+                                          : pairBadgeLabel)
                                     : 'Rest 60s & Complete Triplet',
                                 style: const TextStyle(
                                   fontSize: 10.5,
@@ -1564,10 +2231,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   repsText: '3×8',
                   boxBg: i == 0
                       ? AppColors.inset
-                      : (i == 1 ? AppColors.stoneTint : AppColors.accentMintTint),
+                      : (i == 1
+                            ? AppColors.stoneTint
+                            : AppColors.accentMintTint),
                   boxText: i == 0
                       ? AppColors.obsidian
-                      : (i == 1 ? AppColors.stoneMuted : AppColors.accentMintDark),
+                      : (i == 1
+                            ? AppColors.stoneMuted
+                            : AppColors.accentMintDark),
                   isCompact: isCompact,
                 ),
               ],
@@ -1677,10 +2348,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (exercise.pathName != 'Recommended Path' && exercise.pathName != 'Recommended Progression') ...[
+                        if (exercise.pathName != 'Recommended Path' &&
+                            exercise.pathName != 'Recommended Progression') ...[
                           const SizedBox(width: 5),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1.5,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.stoneTint,
                               borderRadius: BorderRadius.circular(4),
@@ -1744,12 +2419,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surfaceCard,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.stoneBorder,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: AppColors.stoneBorder, width: 1)),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.04),
