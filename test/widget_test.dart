@@ -6,6 +6,7 @@ import 'package:workout_app_1/services/storage_service.dart';
 import 'package:workout_app_1/controllers/workout_controller.dart';
 import 'package:workout_app_1/screens/active_workout_screen.dart';
 import 'package:workout_app_1/screens/progression_ladder_screen.dart';
+import 'package:workout_app_1/screens/history_screen.dart';
 import 'package:workout_app_1/main.dart';
 
 void main() {
@@ -184,6 +185,55 @@ void main() {
     expect(find.text('PRIMARY PAIRS'), findsOneWidget);
     expect(find.text('TARGET UNLOCK'), findsOneWidget);
     expect(find.textContaining('Pull-up'), findsAtLeast(1));
+  });
+
+  testWidgets('HistoryScreen renders heatmap, consistency bar, PR banner, timeline, and Reddit export', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await StorageService.init();
+    final controller = WorkoutController(storage);
+
+    await tester.pumpWidget(MaterialApp(
+      home: HistoryScreen(controller: controller),
+    ));
+    await tester.pumpAndSettle();
+
+    // Verify Header
+    expect(find.text('History & Logs'), findsOneWidget);
+
+    // Verify Weekly Consistency Bar
+    expect(find.text('WEEKLY CONSISTENCY'), findsOneWidget);
+    expect(find.text('4 Week Streak'), findsOneWidget);
+
+    // Verify Monthly Heatmap Card
+    expect(find.text('MONTHLY HEATMAP'), findsOneWidget);
+    expect(find.textContaining('Logged'), findsOneWidget);
+    expect(find.textContaining('Month Load:'), findsOneWidget);
+
+    // Verify Strict Reps Load Card
+    expect(find.text('STRICT REPS LOAD'), findsOneWidget);
+    expect(find.text('96 reps'), findsOneWidget);
+    expect(find.text('PEAK PR'), findsOneWidget);
+
+    // Verify Peak PR Achieved Banner
+    expect(find.text('PEAK PR ACHIEVED'), findsOneWidget);
+    expect(find.text('Celebrate'), findsOneWidget);
+
+    // Verify Recent Logs Timeline
+    expect(find.text('Recent Logs'), findsOneWidget);
+    expect(find.text('Wednesday, Oct 25'), findsOneWidget);
+
+    // Verify Reddit Markdown Export Banner
+    expect(find.text('Reddit Markdown Export'), findsOneWidget);
+    expect(find.text('Copy'), findsOneWidget);
+
+    // Test Copy interaction
+    await tester.ensureVisible(find.text('Copy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy'));
+    await tester.pump();
+    expect(find.text('Copied!'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
   });
 }
 
