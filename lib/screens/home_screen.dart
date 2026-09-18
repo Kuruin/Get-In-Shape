@@ -842,7 +842,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "TODAY'S ROUTINE • WEEK 4, DAY 2",
+          "TODAY'S ROUTINE • WEEK ${widget.controller.currentWeekNumber}, DAY ${widget.controller.currentRoutineDay}",
           style: TextStyle(
             fontSize: isCompact ? 10 : 11,
             fontWeight: FontWeight.w800,

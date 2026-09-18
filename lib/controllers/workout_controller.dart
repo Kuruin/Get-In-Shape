@@ -57,6 +57,31 @@ class WorkoutController extends ChangeNotifier {
   bool get isTimerRunning => _isTimerRunning;
   bool isOnboardingCompleted() => _storage.isOnboardingCompleted();
 
+  DateTime get appStartDate => _storage.getAppStartDate();
+
+  /// Week number counted from when the user started using the app (Week 1, Week 2, etc.)
+  int get currentWeekNumber {
+    final start = appStartDate;
+    final now = DateTime.now();
+    final startDay = DateTime(start.year, start.month, start.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diffDays = today.difference(startDay).inDays;
+    if (diffDays < 0) return 1;
+    return (diffDays ~/ 7) + 1;
+  }
+
+  /// Routine day in the current week cycle (1, 2, or 3 for BWF 3x/week routine)
+  int get currentRoutineDay {
+    final start = appStartDate;
+    final currentWeek = currentWeekNumber;
+    final weekStart = DateTime(start.year, start.month, start.day)
+        .add(Duration(days: (currentWeek - 1) * 7));
+    final workoutsThisWeek = _history
+        .where((s) => !s.startTime.isBefore(weekStart))
+        .length;
+    return (workoutsThisWeek % 3) + 1;
+  }
+
   void _loadInitialData() {
     _userProgressions = _storage.getProgressionLevels();
     _history = _storage.getWorkoutHistory();

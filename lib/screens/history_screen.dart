@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/workout_session.dart';
 import '../theme/app_theme.dart';
 import '../controllers/workout_controller.dart';
+import '../data/bwf_routine_data.dart';
 import '../utils/formatters.dart';
 import '../widgets/version_indicator.dart';
 
@@ -122,6 +123,234 @@ class HistoryScreenState extends State<HistoryScreen> {
     buffer.writeln('');
     buffer.writeln('*Logged via BWF Recommended Routine App*');
     return buffer.toString();
+  }
+
+  WorkoutSession _generateCurrentRoutineSession() {
+    final now = DateTime.now();
+    final activeSets = <LoggedSet>[];
+    for (final ladder in BwfRoutineData.allLadders) {
+      final ex = widget.controller.getSelectedExerciseForLadder(ladder.id);
+      for (int i = 0; i < 3; i++) {
+        activeSets.add(
+          LoggedSet(
+            ladderId: ladder.id,
+            exerciseId: ex.id,
+            exerciseName: ex.name,
+            setIndex: i,
+            reps: ex.maxTargetReps,
+            isCompleted: true,
+          ),
+        );
+      }
+    }
+    return WorkoutSession(
+      id: 'current_routine_session',
+      startTime: now.subtract(const Duration(minutes: 52)),
+      endTime: now,
+      durationSeconds: 3120,
+      sets: activeSets,
+      notes: 'BWF Recommended Routine completed with strict form.',
+      isFinished: true,
+    );
+  }
+
+  void _showShareDialog(
+    BuildContext context,
+    WorkoutSession session, {
+    Rect? sharePositionOrigin,
+  }) {
+    final md = _generateRedditMarkdown(session);
+    final dateStr = DateFormat.yMMMd().format(session.startTime);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _HColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              14,
+              20,
+              24 + MediaQuery.viewInsetsOf(ctx).bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: _HColors.stoneLight,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Header Row
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: _HColors.emerald50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _HColors.emerald200),
+                      ),
+                      child: const Icon(
+                        Icons.share_rounded,
+                        size: 18,
+                        color: _HColors.accentMint,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Share Workout Log',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: _HColors.obsidian,
+                            ),
+                          ),
+                          Text(
+                            'r/bodyweightfitness format • $dateStr',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: _HColors.stoneMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: _HColors.stoneMuted,
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Markdown Preview Container
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _HColors.stoneTint,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _HColors.stoneBorder),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      md,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: _HColors.obsidian,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    // Copy to Clipboard Button
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _HColors.obsidian,
+                          side: const BorderSide(color: _HColors.stoneBorder),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          _copyRedditMarkdown(session);
+                          Navigator.pop(ctx);
+                        },
+                        icon: const Icon(Icons.copy_rounded, size: 16),
+                        label: const Text(
+                          'Copy Markdown',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // System Share Button
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _HColors.obsidian,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () async {
+                          HapticFeedback.mediumImpact();
+                          try {
+                            await Share.share(
+                              md,
+                              subject: 'BWF Workout Log • $dateStr',
+                              sharePositionOrigin: sharePositionOrigin,
+                            );
+                          } catch (_) {
+                            _copyRedditMarkdown(session);
+                          }
+                        },
+                        icon: const Icon(Icons.ios_share_rounded, size: 16),
+                        label: const Text(
+                          'Share Apps',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _shareSession(
+    WorkoutSession session, {
+    Rect? sharePositionOrigin,
+  }) async {
+    _showShareDialog(
+      context,
+      session,
+      sharePositionOrigin: sharePositionOrigin,
+    );
   }
 
   void _copyRedditMarkdown(WorkoutSession session) {
@@ -314,16 +543,27 @@ class HistoryScreenState extends State<HistoryScreen> {
                       ),
                       Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.share_outlined,
-                              color: _HColors.obsidian,
-                              size: 20,
-                            ),
-                            tooltip: 'Export to Reddit',
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _copyRedditMarkdown(session);
+                          Builder(
+                            builder: (btnContext) {
+                              return IconButton(
+                                icon: const Icon(
+                                  Icons.share_outlined,
+                                  color: _HColors.obsidian,
+                                  size: 20,
+                                ),
+                                tooltip: 'Share Workout Log',
+                                onPressed: () {
+                                  final box =
+                                      btnContext.findRenderObject() as RenderBox?;
+                                  final origin = box != null
+                                      ? box.localToGlobal(Offset.zero) & box.size
+                                      : null;
+                                  _shareSession(
+                                    session,
+                                    sharePositionOrigin: origin,
+                                  );
+                                },
+                              );
                             },
                           ),
                           if (isRealSession)
@@ -2196,30 +2436,61 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           const SizedBox.shrink(),
 
                                         if (sessionObj != null)
-                                          GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () => _showSessionDetails(
-                                              sessionObj!,
-                                            ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  'View Full Log',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w800,
-                                                    color: _HColors.obsidian,
-                                                  ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              GestureDetector(
+                                                behavior: HitTestBehavior.opaque,
+                                                onTap: () {
+                                                  _showShareDialog(context, sessionObj!);
+                                                },
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.share_outlined,
+                                                      size: 13,
+                                                      color: _HColors.stoneMuted,
+                                                    ),
+                                                    SizedBox(width: 3),
+                                                    Text(
+                                                      'Share',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: _HColors.stoneMuted,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                SizedBox(width: 2),
-                                                Icon(
-                                                  Icons.arrow_forward_rounded,
-                                                  size: 12,
-                                                  color: _HColors.obsidian,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              GestureDetector(
+                                                behavior: HitTestBehavior.opaque,
+                                                onTap: () => _showSessionDetails(
+                                                  sessionObj!,
                                                 ),
-                                              ],
-                                            ),
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      'View Full Log',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w800,
+                                                        color: _HColors.obsidian,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 2),
+                                                    Icon(
+                                                      Icons.arrow_forward_rounded,
+                                                      size: 12,
+                                                      color: _HColors.obsidian,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                       ],
                                     ),
@@ -2342,179 +2613,156 @@ class HistoryScreenState extends State<HistoryScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Row(
-              children: [
-                // Animated copy icon — taps animate with a scale bounce + color flash
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (_) {
-                    setState(() => _copyIconPressed = true);
-                  },
-                  onTapUp: (_) {
-                    setState(() => _copyIconPressed = false);
-                    if (sessionToExport != null) {
-                      _copyRedditMarkdown(sessionToExport);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                            'No workouts logged yet. Complete a workout first!',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  onTapCancel: () {
-                    setState(() => _copyIconPressed = false);
-                  },
-                  child: AnimatedScale(
-                    scale: _copyIconPressed ? 0.82 : 1.0,
-                    duration: const Duration(milliseconds: 120),
-                    curve: Curves.easeOut,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: _copiedReddit
-                            ? _HColors.accentMint
-                            : _HColors.emerald50,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                final target =
+                    sessionToExport ?? _generateCurrentRoutineSession();
+                _showShareDialog(context, target);
+              },
+              child: Row(
+                children: [
+                  // Animated copy icon — taps animate with a scale bounce + color flash
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (_) {
+                      setState(() => _copyIconPressed = true);
+                    },
+                    onTapUp: (_) {
+                      setState(() => _copyIconPressed = false);
+                      final target =
+                          sessionToExport ?? _generateCurrentRoutineSession();
+                      _copyRedditMarkdown(target);
+                    },
+                    onTapCancel: () {
+                      setState(() => _copyIconPressed = false);
+                    },
+                    child: AnimatedScale(
+                      scale: _copyIconPressed ? 0.82 : 1.0,
+                      duration: const Duration(milliseconds: 120),
+                      curve: Curves.easeOut,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
                           color: _copiedReddit
                               ? _HColors.accentMint
-                              : _HColors.emerald200,
+                              : _HColors.emerald50,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: _copiedReddit
+                                ? _HColors.accentMint
+                                : _HColors.emerald200,
+                          ),
                         ),
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        transitionBuilder: (child, anim) => ScaleTransition(
-                          scale: anim,
-                          child: child,
-                        ),
-                        child: Icon(
-                          _copiedReddit
-                              ? Icons.check_rounded
-                              : Icons.content_copy_rounded,
-                          key: ValueKey(_copiedReddit),
-                          size: 18,
-                          color: _copiedReddit
-                              ? Colors.white
-                              : _HColors.accentMint,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          transitionBuilder: (child, anim) => ScaleTransition(
+                            scale: anim,
+                            child: child,
+                          ),
+                          child: Icon(
+                            _copiedReddit
+                                ? Icons.check_rounded
+                                : Icons.content_copy_rounded,
+                            key: ValueKey(_copiedReddit),
+                            size: 18,
+                            color: _copiedReddit
+                                ? Colors.white
+                                : _HColors.accentMint,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reddit Markdown Export',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: _HColors.obsidian,
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reddit Markdown Export',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: _HColors.obsidian,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'r/bodyweightfitness format',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: _HColors.stoneMuted,
+                        Text(
+                          'r/bodyweightfitness format',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _HColors.stoneMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
 
-          // Share Button — triggers native share sheet or copies to clipboard
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () async {
-              HapticFeedback.mediumImpact();
-              if (sessionToExport != null) {
-                final md = _generateRedditMarkdown(sessionToExport);
-                try {
-                  await Share.share(
-                    md,
-                    subject: 'BWF Recommended Routine Log',
+          // Share Button — triggers native share sheet or in-app share dialog
+          Builder(
+            builder: (btnCtx) {
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () async {
+                  HapticFeedback.mediumImpact();
+                  final box = btnCtx.findRenderObject() as RenderBox?;
+                  final origin = box != null
+                      ? box.localToGlobal(Offset.zero) & box.size
+                      : null;
+                  final target =
+                      sessionToExport ?? _generateCurrentRoutineSession();
+                  await _shareSession(
+                    target,
+                    sharePositionOrigin: origin,
                   );
-                } catch (_) {
-                  // Fallback: If native platform share plugin is unavailable, copy markdown to clipboard
-                  _copyRedditMarkdown(sessionToExport);
-                }
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text(
-                      'No workouts logged yet. Complete a workout first!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: _HColors.obsidian,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x201E232A),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
                       ),
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    duration: const Duration(seconds: 2),
+                    ],
                   ),
-                );
-              }
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.ios_share_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'Share',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                color: _HColors.obsidian,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x201E232A),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.ios_share_rounded,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 5),
-                  Text(
-                    'Share',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

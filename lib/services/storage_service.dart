@@ -12,6 +12,7 @@ class StorageService {
   static const String _keyUserProfile = 'bwf_user_profile';
   static const String _keyOnboardingCompleted = 'bwf_onboarding_completed';
   static const String _keyGlobalTrackMode = 'bwf_global_track_mode';
+  static const String _keyAppStartDate = 'bwf_app_start_date';
 
   final SharedPreferences _prefs;
 
@@ -159,6 +160,30 @@ class StorageService {
     await _prefs.setString(_keyGlobalTrackMode, mode);
   }
 
+  // App Start Date Tracking
+  DateTime getAppStartDate() {
+    final raw = _prefs.getString(_keyAppStartDate);
+    if (raw != null) {
+      try {
+        return DateTime.parse(raw);
+      } catch (_) {}
+    }
+    // Fallback to oldest workout session date if available
+    final history = getWorkoutHistory();
+    if (history.isNotEmpty) {
+      final oldest = history.last.startTime;
+      _prefs.setString(_keyAppStartDate, oldest.toIso8601String());
+      return oldest;
+    }
+    final now = DateTime.now();
+    _prefs.setString(_keyAppStartDate, now.toIso8601String());
+    return now;
+  }
+
+  Future<void> setAppStartDate(DateTime date) async {
+    await _prefs.setString(_keyAppStartDate, date.toIso8601String());
+  }
+
   // Complete Reset of All Stats, History, Drafts, and Profile
   Future<void> resetAllData() async {
     await _prefs.remove(_keyWorkoutHistory);
@@ -166,6 +191,7 @@ class StorageService {
     await _prefs.remove(_keyProgressionLevels);
     await _prefs.remove(_keyUserProfile);
     await _prefs.remove(_keyGlobalTrackMode);
+    await _prefs.remove(_keyAppStartDate);
     await _prefs.setBool(_keyOnboardingCompleted, false);
   }
 }
