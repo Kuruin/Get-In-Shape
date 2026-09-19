@@ -36,6 +36,7 @@ class WorkoutController extends ChangeNotifier {
 
   // Session timer (total duration)
   Timer? _sessionTimer;
+  bool _isSessionPaused = false;
 
   String _globalTrackMode = 'recommended';
 
@@ -55,6 +56,7 @@ class WorkoutController extends ChangeNotifier {
   int get restRemainingSeconds => _restRemainingSeconds;
   int get restTotalSeconds => _restTotalSeconds;
   bool get isTimerRunning => _isTimerRunning;
+  bool get isSessionPaused => _isSessionPaused;
   bool isOnboardingCompleted() => _storage.isOnboardingCompleted();
 
   DateTime get appStartDate => _storage.getAppStartDate();
@@ -231,6 +233,27 @@ class WorkoutController extends ChangeNotifier {
         notifyListeners();
       }
     });
+  }
+
+  /// Toggles the workout session timer between paused and running.
+  void togglePauseWorkout() {
+    if (_activeSession == null) return;
+    _isSessionPaused = !_isSessionPaused;
+    if (_isSessionPaused) {
+      // Stop the timer completely — no more ticks while paused
+      _sessionTimer?.cancel();
+      _sessionTimer = null;
+    } else {
+      // Restart the timer from where it left off
+      _sessionTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (_activeSession != null && !_activeSession!.isFinished) {
+          _activeSession!.durationSeconds++;
+          notifyListeners();
+        }
+      });
+    }
+    HapticFeedback.selectionClick();
+    notifyListeners();
   }
 
   List<LoggedSet> _initializeSetsForActiveRoutine() {
@@ -469,6 +492,7 @@ class WorkoutController extends ChangeNotifier {
     _activeSession = null;
     _currentStage = WorkoutStage.warmup;
     _isTimerRunning = false;
+    _isSessionPaused = false;
 
     HapticFeedback.heavyImpact();
     notifyListeners();
@@ -480,6 +504,7 @@ class WorkoutController extends ChangeNotifier {
     _activeSession = null;
     _currentStage = WorkoutStage.warmup;
     _isTimerRunning = false;
+    _isSessionPaused = false;
     await _storage.clearActiveDraft();
     notifyListeners();
   }

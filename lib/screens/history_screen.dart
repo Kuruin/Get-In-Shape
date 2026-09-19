@@ -12,7 +12,6 @@ import '../controllers/workout_controller.dart';
 import '../data/bwf_routine_data.dart';
 import '../utils/formatters.dart';
 import '../widgets/version_indicator.dart';
-import 'active_workout_screen.dart';
 
 typedef _HColors = AppColors;
 
@@ -555,9 +554,11 @@ class HistoryScreenState extends State<HistoryScreen> {
                                 tooltip: 'Share Workout Log',
                                 onPressed: () {
                                   final box =
-                                      btnContext.findRenderObject() as RenderBox?;
+                                      btnContext.findRenderObject()
+                                          as RenderBox?;
                                   final origin = box != null
-                                      ? box.localToGlobal(Offset.zero) & box.size
+                                      ? box.localToGlobal(Offset.zero) &
+                                            box.size
                                       : null;
                                   _shareSession(
                                     session,
@@ -802,7 +803,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                     16,
                     MediaQuery.paddingOf(context).top + 68,
                     16,
-                    120 + MediaQuery.viewPaddingOf(context).bottom,
+                    (widget.controller.activeSession != null ? 180 : 120) +
+                        MediaQuery.viewPaddingOf(context).bottom,
                   ),
                   child: Center(
                     child: ConstrainedBox(
@@ -810,79 +812,6 @@ class HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (widget.controller.activeSession != null) ...[
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ActiveWorkoutScreen(
-                                        controller: widget.controller),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 14),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: _HColors.accentMintTint,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                      color: _HColors.accentMintBorder),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: _HColors.accentMint,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Text(
-                                          'Workout is in progress',
-                                          style: TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w800,
-                                            color: _HColors.accentMintDark,
-                                            letterSpacing: -0.2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Tap to view',
-                                          style: TextStyle(
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: _HColors.accentMintDark
-                                                .withValues(alpha: 0.8),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          size: 11,
-                                          color: _HColors.accentMintDark,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
                           // 1. Floating Horizontal Weekly Consistency Chip Bar
                           _buildWeeklyConsistencyBar(realHistory),
                           const SizedBox(height: 14),
@@ -1001,7 +930,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                           const SizedBox(height: 1),
                           const Text(
-                            'History & Logs',
+                            'History',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -2514,25 +2443,33 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               GestureDetector(
-                                                behavior: HitTestBehavior.opaque,
+                                                behavior:
+                                                    HitTestBehavior.opaque,
                                                 onTap: () {
-                                                  _showShareDialog(context, sessionObj!);
+                                                  _showShareDialog(
+                                                    context,
+                                                    sessionObj!,
+                                                  );
                                                 },
                                                 child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Icon(
                                                       Icons.share_outlined,
                                                       size: 13,
-                                                      color: _HColors.stoneMuted,
+                                                      color:
+                                                          _HColors.stoneMuted,
                                                     ),
                                                     SizedBox(width: 3),
                                                     Text(
                                                       'Share',
                                                       style: TextStyle(
                                                         fontSize: 11,
-                                                        fontWeight: FontWeight.w700,
-                                                        color: _HColors.stoneMuted,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color:
+                                                            _HColors.stoneMuted,
                                                       ),
                                                     ),
                                                   ],
@@ -2540,24 +2477,30 @@ class HistoryScreenState extends State<HistoryScreen> {
                                               ),
                                               const SizedBox(width: 12),
                                               GestureDetector(
-                                                behavior: HitTestBehavior.opaque,
-                                                onTap: () => _showSessionDetails(
-                                                  sessionObj!,
-                                                ),
+                                                behavior:
+                                                    HitTestBehavior.opaque,
+                                                onTap: () =>
+                                                    _showSessionDetails(
+                                                      sessionObj!,
+                                                    ),
                                                 child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Text(
                                                       'View Full Log',
                                                       style: TextStyle(
                                                         fontSize: 11,
-                                                        fontWeight: FontWeight.w800,
-                                                        color: _HColors.obsidian,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color:
+                                                            _HColors.obsidian,
                                                       ),
                                                     ),
                                                     SizedBox(width: 2),
                                                     Icon(
-                                                      Icons.arrow_forward_rounded,
+                                                      Icons
+                                                          .arrow_forward_rounded,
                                                       size: 12,
                                                       color: _HColors.obsidian,
                                                     ),
@@ -2732,10 +2675,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                         ),
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          transitionBuilder: (child, anim) => ScaleTransition(
-                            scale: anim,
-                            child: child,
-                          ),
+                          transitionBuilder: (child, anim) =>
+                              ScaleTransition(scale: anim, child: child),
                           child: Icon(
                             _copiedReddit
                                 ? Icons.check_rounded
@@ -2796,14 +2737,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                       : null;
                   final target =
                       sessionToExport ?? _generateCurrentRoutineSession();
-                  await _shareSession(
-                    target,
-                    sharePositionOrigin: origin,
-                  );
+                  await _shareSession(target, sharePositionOrigin: origin);
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: _HColors.obsidian,
                     borderRadius: BorderRadius.circular(20),

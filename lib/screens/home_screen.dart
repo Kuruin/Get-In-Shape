@@ -1091,12 +1091,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Docked Full-Width Solid Bottom Navigation Bar (Edge-to-Edge, No Blur)
+                  // Docked Active Workout Bar & Bottom Navigation Bar — unified block
                   Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: _buildDockedBottomNav(),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF5F5F4),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE5E5E3), width: 1),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color.fromRGBO(0, 0, 0, 0.06),
+                            blurRadius: 12,
+                            offset: Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.controller.activeSession != null)
+                            _buildActiveWorkoutBar(),
+                          _buildDockedBottomNav(),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1141,7 +1163,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   horizontalPadding,
                   MediaQuery.paddingOf(context).top + (isCompact ? 10 : 14),
                   horizontalPadding,
-                  116 + MediaQuery.viewPaddingOf(context).bottom,
+                  (widget.controller.activeSession != null ? 176 : 116) +
+                      MediaQuery.viewPaddingOf(context).bottom,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2111,74 +2134,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Column(
             children: [
-              if (widget.controller.activeSession != null) ...[
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    _showActiveWorkoutDialog(context);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentMintTint,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.accentMintBorder),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.accentMint,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Workout is in progress',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.accentMintDark,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Tap to view',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.accentMintDark.withValues(
-                                  alpha: 0.8,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 11,
-                              color: AppColors.accentMintDark,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
               for (int i = 0; i < pairLadders.length; i++) ...[
                 if (i > 0)
                   Padding(
@@ -2414,61 +2369,154 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- 4. DOCKED FULL-WIDTH SOLID BOTTOM NAVIGATION BAR (NO BLUR) ---
+  // --- Active Workout Bar (no own background — unified with bottom nav container) ---
+  Widget _buildActiveWorkoutBar() {
+    String _fmt(int s) {
+      final m = s ~/ 60;
+      final sec = s % 60;
+      return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+    }
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        final s = widget.controller.activeSession;
+        if (s == null) return const SizedBox.shrink();
+
+        final isPaused = widget.controller.isSessionPaused;
+        final elapsed = s.durationSeconds;
+
+        void openWorkout() {
+          HapticFeedback.selectionClick();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  ActiveWorkoutScreen(controller: widget.controller),
+            ),
+          );
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                // Tappable left section — opens workout screen
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: openWorkout,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+                      child: Row(
+                        children: [
+                          // Label
+                          Expanded(
+                            child: Text(
+                              isPaused ? 'Workout paused' : 'Workout in progress',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: isPaused
+                                    ? AppColors.mutedGray
+                                    : AppColors.obsidian.withValues(alpha: 0.8),
+                                letterSpacing: -0.2,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+
+                          // Timer
+                          Text(
+                            _fmt(elapsed),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: isPaused
+                                  ? AppColors.mutedGray
+                                  : AppColors.obsidian,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Pause / Resume toggle
+                IconButton(
+                  icon: Icon(
+                    isPaused
+                        ? Icons.play_circle_outline_rounded
+                        : Icons.pause_circle_outline_rounded,
+                    size: 24,
+                  ),
+                  color: isPaused ? AppColors.accentMint : AppColors.obsidian,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  constraints: const BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: isPaused ? 'Resume workout' : 'Pause workout',
+                  onPressed: () => widget.controller.togglePauseWorkout(),
+                ),
+              ],
+            ),
+            // Thin divider separating bar from nav tabs
+            const Divider(height: 1, thickness: 1, color: Color(0xFFE5E5E3)),
+          ],
+        );
+      },
+    );
+  }
+
+  // --- 4. BOTTOM NAVIGATION BAR (no own background — shared with workout bar container) ---
   Widget _buildDockedBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceCard,
-        border: Border(top: BorderSide(color: AppColors.stoneBorder, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 10,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  // Tab 0: Home
-                  _buildNavButton(
-                    index: 0,
-                    label: 'Home',
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home_rounded,
-                  ),
+    return SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Tab 0: Home
+                _buildNavButton(
+                  index: 0,
+                  label: 'Home',
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                ),
 
-                  // Tab 1: Progressions
-                  _buildNavButton(
-                    index: 1,
-                    label: 'Progressions',
-                    icon: Icons.alt_route_rounded,
-                    activeIcon: Icons.alt_route_rounded,
-                  ),
+                // Tab 1: Progressions
+                _buildNavButton(
+                  index: 1,
+                  label: 'Progressions',
+                  icon: Icons.alt_route_rounded,
+                  activeIcon: Icons.alt_route_rounded,
+                ),
 
-                  // Tab 2: History
-                  _buildNavButton(
-                    index: 2,
-                    label: 'History',
-                    icon: Icons.calendar_today_outlined,
-                    activeIcon: Icons.calendar_today_rounded,
-                  ),
-                ],
-              ),
+                // Tab 2: History
+                _buildNavButton(
+                  index: 2,
+                  label: 'History',
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today_rounded,
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+
 
   Widget _buildNavButton({
     required int index,

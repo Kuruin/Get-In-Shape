@@ -159,6 +159,24 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               },
             ),
             actions: [
+              // Pause / Resume workout session
+              ListenableBuilder(
+                listenable: widget.controller,
+                builder: (context, _) {
+                  final isPaused = widget.controller.isSessionPaused;
+                  return IconButton(
+                    icon: Icon(
+                      isPaused
+                          ? Icons.play_circle_outline_rounded
+                          : Icons.pause_circle_outline_rounded,
+                      size: 22,
+                      color: isPaused ? AppColors.accentMint : AppColors.stone,
+                    ),
+                    tooltip: isPaused ? 'Resume workout' : 'Pause workout',
+                    onPressed: () => widget.controller.togglePauseWorkout(),
+                  );
+                },
+              ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert_rounded, color: AppColors.stone, size: 22),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
