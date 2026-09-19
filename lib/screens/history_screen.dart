@@ -267,7 +267,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: _HColors.emerald200),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.share_rounded,
                         size: 18,
                         color: _HColors.accentMint,
@@ -278,7 +278,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Share Workout Log',
                             style: TextStyle(
                               fontSize: 16,
@@ -288,7 +288,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                           Text(
                             'r/bodyweightfitness format • $dateStr',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: _HColors.stoneMuted,
                             ),
@@ -318,7 +318,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   child: SingleChildScrollView(
                     child: Text(
                       md,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
                         color: _HColors.obsidian,
@@ -337,7 +337,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: _HColors.obsidian,
-                          side: const BorderSide(color: _HColors.stoneBorder),
+                          side: BorderSide(color: _HColors.stoneBorder),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -363,7 +363,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _HColors.obsidian,
+                          backgroundColor: _HColors.isDark
+                              ? _HColors.stoneBorder
+                              : _HColors.obsidian,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           elevation: 0,
@@ -425,7 +427,7 @@ class HistoryScreenState extends State<HistoryScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
             Icon(
               Icons.check_circle_rounded,
@@ -501,7 +503,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Select Month & Year',
                           style: TextStyle(
                             fontSize: 17,
@@ -536,7 +538,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: _HColors.emerald200),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Current',
                               style: TextStyle(
                                 fontSize: 11,
@@ -573,7 +575,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                           Text(
                             '$pickerYear',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                               color: _HColors.obsidian,
@@ -620,14 +622,14 @@ class HistoryScreenState extends State<HistoryScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isYrSelected
-                                    ? _HColors.obsidian
+                                    ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                                     : (isCurrentYr
                                         ? _HColors.emerald50
                                         : _HColors.surfaceCard),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isYrSelected
-                                      ? _HColors.obsidian
+                                      ? (_HColors.isDark ? Colors.white : _HColors.obsidian)
                                       : (isCurrentYr
                                           ? _HColors.accentMint
                                           : _HColors.stoneBorder),
@@ -688,14 +690,14 @@ class HistoryScreenState extends State<HistoryScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? _HColors.obsidian
+                                  ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                                   : (isCurrentMonth
                                       ? _HColors.emerald50
                                       : _HColors.surfaceCard),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isSelected
-                                    ? _HColors.obsidian
+                                    ? (_HColors.isDark ? Colors.white : _HColors.obsidian)
                                     : (isCurrentMonth
                                         ? _HColors.accentMint
                                         : _HColors.stoneBorder),
@@ -771,7 +773,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               DateFormat('EEEE, MMM d, yyyy')
                                   .format(session.startTime),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 color: _HColors.obsidian,
@@ -779,7 +781,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                             ),
                             Text(
                               DateFormat.jm().format(session.startTime),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: _HColors.stoneMuted,
                               ),
@@ -792,7 +794,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           Builder(
                             builder: (btnContext) {
                               return IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.share_outlined,
                                   color: _HColors.obsidian,
                                   size: 20,
@@ -876,7 +878,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'SESSION NOTES',
                             style: TextStyle(
                               fontSize: 10,
@@ -888,7 +890,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           const SizedBox(height: 4),
                           Text(
                             session.notes,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               color: _HColors.obsidian,
                             ),
@@ -898,7 +900,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ],
                   const SizedBox(height: 20),
-                  const Text(
+                  Text(
                     'EXERCISE SET LOG',
                     style: TextStyle(
                       fontSize: 11,
@@ -929,13 +931,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                                   width: 22,
                                   height: 22,
                                   alignment: Alignment.center,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     color: _HColors.stoneLight,
                                     shape: BoxShape.circle,
                                   ),
                                   child: Text(
                                     '${s.setIndex + 1}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: _HColors.obsidian,
@@ -946,7 +948,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                 Expanded(
                                   child: Text(
                                     s.exerciseName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: _HColors.obsidian,
@@ -955,7 +957,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                 ),
                                 Text(
                                   '${s.reps} reps${s.addedWeightKg > 0 ? ' (+${s.addedWeightKg}kg)' : ''}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: _HColors.accentMint,
@@ -969,7 +971,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                         )
                   else
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Center(
                         child: Text(
@@ -1008,7 +1010,7 @@ class HistoryScreenState extends State<HistoryScreen> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
               color: _HColors.obsidian,
@@ -1018,7 +1020,7 @@ class HistoryScreenState extends State<HistoryScreen> {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               color: _HColors.stoneMuted,
               fontWeight: FontWeight.w600,
@@ -1111,7 +1113,11 @@ class HistoryScreenState extends State<HistoryScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: _HColors.canvas.withValues(alpha: 0.94),
-            border: const Border(bottom: BorderSide(color: Color(0x2057534E))),
+            border: Border(
+              bottom: BorderSide(
+                color: _HColors.stoneBorder.withValues(alpha: 0.6),
+              ),
+            ),
             boxShadow: _isCalendarDropdownOpen
                 ? const [
                     BoxShadow(
@@ -1136,7 +1142,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Clean Title (dumbbell icon & subtitle row removed)
-                    const Text(
+                    Text(
                       'History',
                       style: TextStyle(
                         fontSize: 20,
@@ -1157,19 +1163,19 @@ class HistoryScreenState extends State<HistoryScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: _isCalendarDropdownOpen
-                              ? _HColors.obsidian
+                              ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                               : _HColors.surfaceCard,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: _isCalendarDropdownOpen
-                                ? _HColors.obsidian
+                                ? (_HColors.isDark ? _HColors.primary : _HColors.obsidian)
                                 : _HColors.stoneBorder,
                           ),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
-                              color: Color(0x08000000),
+                              color: Colors.black.withValues(alpha: _HColors.isDark ? 0.3 : 0.04),
                               blurRadius: 4,
-                              offset: Offset(0, 1),
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
@@ -1225,10 +1231,10 @@ class HistoryScreenState extends State<HistoryScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: _HColors.canvas,
         border: Border(
-          top: BorderSide(color: Color(0x1557534E), width: 1),
+          top: BorderSide(color: _HColors.stoneBorder, width: 1),
         ),
       ),
       child: AnimatedSwitcher(
@@ -1327,14 +1333,14 @@ class HistoryScreenState extends State<HistoryScreen> {
                       children: [
                         Text(
                           DateFormat('MMMM').format(_selectedMonth),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: _HColors.obsidian,
                           ),
                         ),
                         const SizedBox(width: 3),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 14,
                           color: _HColors.stoneMuted,
@@ -1367,7 +1373,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       children: [
                         Text(
                           '$year',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: _HColors.obsidian,
@@ -1375,7 +1381,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                         ),
                         const SizedBox(width: 3),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 14,
                           color: _HColors.stoneMuted,
@@ -1420,7 +1426,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: _HColors.emerald200),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.today_rounded, size: 12, color: _HColors.emerald700),
@@ -1449,7 +1455,7 @@ class HistoryScreenState extends State<HistoryScreen> {
               child: Center(
                 child: Text(
                   d,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: _HColors.stoneMuted,
@@ -1478,9 +1484,9 @@ class HistoryScreenState extends State<HistoryScreen> {
               return Center(
                 child: Text(
                   '$prevDay',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0x3557534E),
+                    color: _HColors.stoneMuted.withValues(alpha: 0.35),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1493,9 +1499,9 @@ class HistoryScreenState extends State<HistoryScreen> {
               return Center(
                 child: Text(
                   '$nextDay',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0x3557534E),
+                    color: _HColors.stoneMuted.withValues(alpha: 0.35),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1522,16 +1528,16 @@ class HistoryScreenState extends State<HistoryScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? _HColors.obsidian
+                      ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                       : (isToday ? _HColors.emerald50 : Colors.transparent),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected
-                        ? _HColors.obsidian
+                        ? (_HColors.isDark ? Colors.white : _HColors.obsidian)
                         : (isToday
                             ? _HColors.accentMint
                             : (hasWorkout
-                                ? _HColors.stoneLight
+                                ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.stoneLight)
                                 : Colors.transparent)),
                     width: isSelected || isToday ? 1.5 : 1,
                   ),
@@ -1551,8 +1557,8 @@ class HistoryScreenState extends State<HistoryScreen> {
                             : (isToday
                                 ? _HColors.emerald700
                                 : (hasWorkout
-                                    ? _HColors.obsidian
-                                    : _HColors.textPrimary)),
+                                    ? _HColors.textPrimary
+                                    : _HColors.stoneMuted)),
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -1563,7 +1569,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: hasWorkout
-                            ? (isSelected ? _HColors.accentMint : _HColors.accentMint)
+                            ? (isSelected ? Colors.white : _HColors.accentMint)
                             : Colors.transparent,
                       ),
                     ),
@@ -1582,7 +1588,7 @@ class HistoryScreenState extends State<HistoryScreen> {
             children: [
               Text(
                 'Showing ${DateFormat('EEE, MMM d').format(_selectedDate!)} workouts',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: _HColors.emerald700,
@@ -1593,7 +1599,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   HapticFeedback.selectionClick();
                   setState(() => _selectedDate = null);
                 },
-                child: const Text(
+                child: Text(
                   'Clear Filter',
                   style: TextStyle(
                     fontSize: 11,
@@ -1607,7 +1613,7 @@ class HistoryScreenState extends State<HistoryScreen> {
         else
           Text(
             '${sessionsInMonth.length} workouts logged in ${DateFormat('MMMM yyyy').format(_selectedMonth)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: _HColors.stoneMuted,
@@ -1655,7 +1661,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   },
                 ),
                 const SizedBox(width: 6),
-                const Text(
+                Text(
                   'Month for',
                   style: TextStyle(
                     fontSize: 13,
@@ -1686,7 +1692,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       children: [
                         Text(
                           '$year',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                             color: _HColors.obsidian,
@@ -1694,7 +1700,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           ),
                         ),
                         const SizedBox(width: 3),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 15,
                           color: _HColors.stoneMuted,
@@ -1735,7 +1741,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _HColors.stoneBorder),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
@@ -1784,14 +1790,14 @@ class HistoryScreenState extends State<HistoryScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? _HColors.obsidian
+                      ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                       : (isCurrentMonth
                           ? _HColors.emerald50
                           : _HColors.surfaceCard),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? _HColors.obsidian
+                        ? (_HColors.isDark ? Colors.white : _HColors.obsidian)
                         : (isCurrentMonth
                             ? _HColors.accentMint
                             : _HColors.stoneBorder),
@@ -1821,7 +1827,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                         fontSize: 9.5,
                         fontWeight: FontWeight.w600,
                         color: isSelected
-                            ? _HColors.accentMint
+                            ? (_HColors.isDark ? _HColors.textSecondary : _HColors.accentMint)
                             : (isCurrentMonth
                                 ? _HColors.emerald700
                                 : _HColors.stoneMuted),
@@ -1868,7 +1874,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                 const SizedBox(width: 6),
                 Text(
                   '$startYear – $endYear',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: _HColors.obsidian,
@@ -1907,7 +1913,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _HColors.stoneBorder),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
@@ -1956,14 +1962,14 @@ class HistoryScreenState extends State<HistoryScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? _HColors.obsidian
+                      ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                       : (isCurrentYear
                           ? _HColors.emerald50
                           : _HColors.surfaceCard),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? _HColors.obsidian
+                        ? (_HColors.isDark ? Colors.white : _HColors.obsidian)
                         : (isCurrentYear
                             ? _HColors.accentMint
                             : _HColors.stoneBorder),
@@ -1994,7 +2000,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                         fontSize: 9.5,
                         fontWeight: FontWeight.w600,
                         color: isSelected
-                            ? _HColors.accentMint
+                            ? (_HColors.isDark ? _HColors.textSecondary : _HColors.accentMint)
                             : (isCurrentYear
                                 ? _HColors.emerald700
                                 : _HColors.stoneMuted),
@@ -2072,7 +2078,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'WEEKLY CONSISTENCY',
                       style: TextStyle(
                         fontSize: 10,
@@ -2093,7 +2099,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       ),
                       child: Text(
                         rangeText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
                           color: _HColors.obsidian,
@@ -2115,7 +2121,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.local_fire_department_rounded,
                       color: _HColors.accentMint,
                       size: 13,
@@ -2123,7 +2129,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     const SizedBox(width: 3),
                     Text(
                       streakPillText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: _HColors.emerald700,
@@ -2150,25 +2156,25 @@ class HistoryScreenState extends State<HistoryScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: isPR
-                        ? _HColors.obsidian
+                        ? (_HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian)
                         : (isLogged
                               ? _HColors.stoneTint
-                              : const Color(0x30F5F5F4)),
+                              : (_HColors.isDark ? _HColors.inset : const Color(0x30F5F5F4))),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPR
                           ? _HColors.emerald200
                           : (isLogged
                                 ? _HColors.stoneLight
-                                : Colors.transparent),
+                                : (_HColors.isDark ? _HColors.stoneBorder.withValues(alpha: 0.4) : Colors.transparent)),
                       width: isPR ? 1.5 : 1,
                     ),
                     boxShadow: isPR
-                        ? const [
+                        ? [
                             BoxShadow(
-                              color: Color(0x201E232A),
+                              color: Colors.black.withValues(alpha: _HColors.isDark ? 0.3 : 0.12),
                               blurRadius: 4,
-                              offset: Offset(0, 2),
+                              offset: const Offset(0, 2),
                             ),
                           ]
                         : null,
@@ -2184,7 +2190,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                               ? _HColors.accentMint
                               : (isLogged
                                     ? _HColors.stoneMuted
-                                    : const Color(0x8057534E)),
+                                    : _HColors.stoneMuted.withValues(alpha: 0.6)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -2199,7 +2205,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                               ? Colors.white
                               : (isLogged
                                     ? _HColors.obsidian
-                                    : const Color(0x8057534E)),
+                                    : _HColors.stoneMuted.withValues(alpha: 0.6)),
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -2288,7 +2294,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: _HColors.emerald200),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.calendar_view_month_rounded,
                           size: 16,
                           color: _HColors.accentMint,
@@ -2299,7 +2305,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'MONTHLY HEATMAP',
                               style: TextStyle(
                                 fontSize: 10,
@@ -2325,7 +2331,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                       _scrollToCurrentDay();
                                     });
                                   },
-                                  child: const Padding(
+                                  child: Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 2),
                                     child: Icon(
                                       Icons.chevron_left_rounded,
@@ -2339,7 +2345,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                   onTap: _showMonthPickerSheet,
                                   child: Text(
                                     DateFormat('MMMM yyyy').format(_selectedMonth),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                       color: _HColors.obsidian,
@@ -2362,7 +2368,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                       _scrollToCurrentDay();
                                     });
                                   },
-                                  child: const Padding(
+                                  child: Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 2),
                                     child: Icon(
                                       Icons.chevron_right_rounded,
@@ -2391,7 +2397,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.local_fire_department_rounded,
                         color: _HColors.accentMint,
                         size: 13,
@@ -2399,7 +2405,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(width: 3),
                       Text(
                         '${monthSessions.length} / $daysInMonth Logged',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: _HColors.emerald700,
@@ -2453,7 +2459,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                             child: Center(
                               child: Text(
                                 d,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w800,
                                   color: _HColors.stoneMuted,
@@ -2504,7 +2510,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                   child: Text(
                     'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       color: _HColors.obsidian,
@@ -2520,7 +2526,7 @@ class HistoryScreenState extends State<HistoryScreen> {
               children: [
                 Text(
                   'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: _HColors.stoneMuted,
@@ -2533,7 +2539,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       _isHeatmapExpanded = true;
                     });
                   },
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -2578,9 +2584,9 @@ class HistoryScreenState extends State<HistoryScreen> {
           alignment: Alignment.center,
           child: Text(
             '${30 - (prevMonthDaysCount - 1 - i)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: Color(0x4057534E),
+              color: _HColors.stoneMuted.withValues(alpha: 0.4),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -2607,14 +2613,14 @@ class HistoryScreenState extends State<HistoryScreen> {
       final isSession = sessionDays.contains(day);
       final isMobility = mobilityDays.contains(day);
 
-      Color bgColor = Colors.white;
+      Color bgColor = _HColors.isDark ? _HColors.inset : Colors.white;
       Color textColor = _HColors.stoneMuted;
       FontWeight fontWeight = FontWeight.w500;
       Border? border;
 
       if (isPR) {
-        bgColor = _HColors.obsidian;
-        textColor = _HColors.accentMint;
+        bgColor = _HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian;
+        textColor = _HColors.isDark ? Colors.white : _HColors.accentMint;
         fontWeight = FontWeight.w900;
         border = Border.all(color: _HColors.emerald200, width: 1.5);
       } else if (isSession) {
@@ -2626,8 +2632,8 @@ class HistoryScreenState extends State<HistoryScreen> {
         textColor = _HColors.emerald700;
         fontWeight = FontWeight.w700;
       } else {
-        bgColor = Colors.white;
-        border = Border.all(color: _HColors.stoneLight.withValues(alpha: 0.6));
+        bgColor = _HColors.isDark ? _HColors.inset : Colors.white;
+        border = Border.all(color: _HColors.stoneBorder.withValues(alpha: 0.6));
       }
 
       tiles.add(
@@ -2657,7 +2663,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   child: Container(
                     width: 4,
                     height: 4,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: _HColors.accentMint,
                       shape: BoxShape.circle,
                     ),
@@ -2678,9 +2684,9 @@ class HistoryScreenState extends State<HistoryScreen> {
           alignment: Alignment.center,
           child: Text(
             '$i',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: Color(0x4057534E),
+              color: _HColors.stoneMuted.withValues(alpha: 0.4),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -2715,7 +2721,7 @@ class HistoryScreenState extends State<HistoryScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w600,
             color: _HColors.stoneMuted,
@@ -2747,18 +2753,18 @@ class HistoryScreenState extends State<HistoryScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [_HColors.emerald50, Colors.white, _HColors.stoneTint],
+        gradient: LinearGradient(
+          colors: [_HColors.emerald50, _HColors.surfaceCard, _HColors.stoneTint],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _HColors.emerald200),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0810B981),
+            color: Colors.black.withValues(alpha: _HColors.isDark ? 0.2 : 0.04),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -2773,13 +2779,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                     Container(
                       width: 36,
                       height: 36,
-                      decoration: const BoxDecoration(
-                        color: _HColors.obsidian,
+                      decoration: BoxDecoration(
+                        color: _HColors.isDark ? _HColors.stoneBorder : _HColors.obsidian,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.emoji_events_rounded,
-                        color: Colors.white,
+                        color: _HColors.isDark ? _HColors.accentMint : Colors.white,
                         size: 18,
                       ),
                     ),
@@ -2792,7 +2798,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                         decoration: BoxDecoration(
                           color: _HColors.accentMint,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
+                          border: Border.all(
+                            color: _HColors.isDark ? _HColors.surfaceCard : Colors.white,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
@@ -2808,7 +2817,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                         children: [
                           Text(
                             titleText,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               color: _HColors.emerald700,
@@ -2822,13 +2831,15 @@ class HistoryScreenState extends State<HistoryScreen> {
                               vertical: 1,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: _HColors.isDark
+                                  ? _HColors.stoneBorder
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(color: _HColors.emerald200),
                             ),
                             child: Text(
                               dateBadge,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w700,
                                 color: _HColors.emerald700,
@@ -2840,7 +2851,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(height: 2),
                       Text(
                         subtitleText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           color: _HColors.obsidian,
@@ -2877,9 +2888,13 @@ class HistoryScreenState extends State<HistoryScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _HColors.isDark ? _HColors.surfaceCard : Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _HColors.emerald200),
+                border: Border.all(
+                  color: _HColors.isDark
+                      ? _HColors.stoneBorder
+                      : _HColors.emerald200,
+                ),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x0A000000),
@@ -2888,7 +2903,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -2925,7 +2940,7 @@ class HistoryScreenState extends State<HistoryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Recent Logs',
                 style: TextStyle(
                   fontSize: 15,
@@ -2939,7 +2954,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   color: _HColors.stoneLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
+                child: Text(
                   '0 Sessions',
                   style: TextStyle(
                     fontSize: 10,
@@ -2971,18 +2986,18 @@ class HistoryScreenState extends State<HistoryScreen> {
                 Container(
                   width: 52,
                   height: 52,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: _HColors.stoneTint,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.history_rounded,
                     color: _HColors.stoneMuted,
                     size: 26,
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Text(
+                Text(
                   'No Workouts Logged Yet',
                   style: TextStyle(
                     fontSize: 15,
@@ -2991,7 +3006,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Completed workouts, set details, and PR achievements will appear here.\nTap "Start Workout" on Home to begin your first session!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -3035,7 +3050,7 @@ class HistoryScreenState extends State<HistoryScreen> {
           children: [
             Row(
               children: [
-                const Text(
+                Text(
                   'Recent Logs',
                   style: TextStyle(
                     fontSize: 15,
@@ -3055,7 +3070,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   ),
                   child: Text(
                     '${sessions.length} Sessions',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: _HColors.stoneMuted,
@@ -3083,7 +3098,7 @@ class HistoryScreenState extends State<HistoryScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.filter_alt_outlined,
                       size: 14,
                       color: _HColors.emerald700,
@@ -3091,7 +3106,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Filtered: ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate!)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: _HColors.emerald700,
@@ -3107,7 +3122,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                       _selectedDate = null;
                     });
                   },
-                  child: const Text(
+                  child: Text(
                     'Show All',
                     style: TextStyle(
                       fontSize: 12,
@@ -3131,7 +3146,7 @@ class HistoryScreenState extends State<HistoryScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.event_busy_rounded,
                     size: 32,
                     color: _HColors.stoneMuted,
@@ -3139,7 +3154,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'No workouts logged on ${DateFormat('MMMM d, yyyy').format(_selectedDate!)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: _HColors.obsidian,
@@ -3165,7 +3180,10 @@ class HistoryScreenState extends State<HistoryScreen> {
               left: 10,
               top: 14,
               bottom: 24,
-              child: Container(width: 2, color: _HColors.stoneLight),
+              child: Container(
+                width: 2,
+                color: _HColors.isDark ? _HColors.stoneBorder : _HColors.stoneLight,
+              ),
             ),
 
             // Timeline Items
@@ -3197,11 +3215,15 @@ class HistoryScreenState extends State<HistoryScreen> {
                             shape: BoxShape.circle,
                             color: isPR
                                 ? _HColors.accentMint
-                                : _HColors.obsidian,
+                                : (_HColors.isDark
+                                    ? _HColors.stoneBorder
+                                    : _HColors.obsidian),
                             border: Border.all(
                               color: isPR
                                   ? _HColors.emerald100
-                                  : _HColors.stoneLight,
+                                  : (_HColors.isDark
+                                      ? _HColors.primary
+                                      : _HColors.stoneLight),
                               width: 3,
                             ),
                           ),
@@ -3209,9 +3231,13 @@ class HistoryScreenState extends State<HistoryScreen> {
                             child: Container(
                               width: 4,
                               height: 4,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white,
+                                color: isPR
+                                    ? Colors.white
+                                    : (_HColors.isDark
+                                        ? _HColors.accentMint
+                                        : Colors.white),
                               ),
                             ),
                           ),
@@ -3252,7 +3278,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           Flexible(
                                             child: Text(
                                               item['date'] as String,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w800,
                                                 color: _HColors.obsidian,
@@ -3310,7 +3336,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              const Icon(
+                                              Icon(
                                                 Icons.schedule_rounded,
                                                 size: 12,
                                                 color: _HColors.stoneMuted,
@@ -3318,7 +3344,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                               const SizedBox(width: 3),
                                               Text(
                                                 item['duration'] as String,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w800,
                                                   color: _HColors.obsidian,
@@ -3333,7 +3359,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           duration: const Duration(
                                             milliseconds: 200,
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.keyboard_arrow_down_rounded,
                                             size: 18,
                                             color: _HColors.stoneMuted,
@@ -3350,7 +3376,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                             if (isExpanded) ...[
                               Container(
                                 height: 1,
-                                color: const Color(0x1057534E),
+                                color: _HColors.stoneBorder.withValues(alpha: 0.5),
                               ),
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
@@ -3371,7 +3397,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                           isReal
                                               ? 'BWF Recommended Routine'
                                               : (item['title'] as String),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w700,
                                             color: _HColors.stoneMuted,
@@ -3383,7 +3409,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             onTap: () => _showSessionDetails(
                                               sessionObj!,
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.more_vert_rounded,
                                               size: 16,
                                               color: _HColors.stoneMuted,
@@ -3409,7 +3435,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                         ),
                                         child: Row(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.schedule_rounded,
                                               size: 12,
                                               color: _HColors.obsidian,
@@ -3417,27 +3443,27 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             const SizedBox(width: 4),
                                             Text(
                                               item['duration'] as String,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w700,
                                                 color: _HColors.obsidian,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            const Text(
+                                            Text(
                                               '•',
                                               style: TextStyle(
                                                 color: _HColors.stoneLight,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            const Icon(
+                                            Icon(
                                               Icons.fitness_center_rounded,
                                               size: 12,
                                               color: _HColors.obsidian,
                                             ),
                                             const SizedBox(width: 4),
-                                            const Text(
+                                            Text(
                                               '3 Pairs',
                                               style: TextStyle(
                                                 fontSize: 10,
@@ -3447,20 +3473,20 @@ class HistoryScreenState extends State<HistoryScreen> {
                                             ),
                                             if (isPR) ...[
                                               const SizedBox(width: 8),
-                                              const Text(
+                                              Text(
                                                 '•',
                                                 style: TextStyle(
                                                   color: _HColors.stoneLight,
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
-                                              const Icon(
+                                              Icon(
                                                 Icons.check_rounded,
                                                 size: 12,
                                                 color: _HColors.accentMint,
                                               ),
                                               const SizedBox(width: 2),
-                                              const Text(
+                                              Text(
                                                 'Passed Progression',
                                                 style: TextStyle(
                                                   fontSize: 10,
@@ -3497,7 +3523,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                               8,
                                             ),
                                             border: Border.all(
-                                              color: _HColors.stoneLight,
+                                              color: _HColors.stoneBorder,
                                             ),
                                           ),
                                           child: Row(
@@ -3511,7 +3537,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                       width: 5,
                                                       height: 5,
                                                       decoration:
-                                                          const BoxDecoration(
+                                                          BoxDecoration(
                                                             color: _HColors
                                                                 .accentMint,
                                                             shape:
@@ -3522,7 +3548,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                     Expanded(
                                                       child: Text(
                                                         ex['name'] as String,
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 11,
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -3542,7 +3568,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                 children: [
                                                   Text(
                                                     ex['detail'] as String,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 10,
                                                       fontWeight:
                                                           FontWeight.w600,
@@ -3614,7 +3640,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                   color: _HColors.emerald200,
                                                 ),
                                               ),
-                                              child: const Row(
+                                              child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Icon(
@@ -3657,7 +3683,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                     sessionObj!,
                                                   );
                                                 },
-                                                child: const Row(
+                                                child: Row(
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
@@ -3689,7 +3715,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                                                     _showSessionDetails(
                                                       sessionObj!,
                                                     ),
-                                                child: const Row(
+                                                child: Row(
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
@@ -3744,7 +3770,7 @@ class HistoryScreenState extends State<HistoryScreen> {
 
     if (groups.isEmpty) {
       return [
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(vertical: 4),
           child: Text(
             'Completed warmup & mobility session',
@@ -3765,7 +3791,7 @@ class HistoryScreenState extends State<HistoryScreen> {
         decoration: BoxDecoration(
           color: _HColors.stoneTint,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _HColors.stoneLight),
+          border: Border.all(color: _HColors.stoneBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3776,7 +3802,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   Container(
                     width: 5,
                     height: 5,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: _HColors.accentMint,
                       shape: BoxShape.circle,
                     ),
@@ -3785,7 +3811,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                   Expanded(
                     child: Text(
                       entry.key,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: _HColors.obsidian,
@@ -3799,7 +3825,7 @@ class HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(width: 8),
             Text(
               '$totalSets sets ($repsList reps)${weight > 0 ? ' @ +${weight}kg' : ''}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: _HColors.stoneMuted,
@@ -3898,7 +3924,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -3951,7 +3977,9 @@ class HistoryScreenState extends State<HistoryScreen> {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: _HColors.obsidian,
+                    color: _HColors.isDark
+                        ? _HColors.stoneBorder
+                        : _HColors.obsidian,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: const [
                       BoxShadow(

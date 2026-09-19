@@ -271,7 +271,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
             children: [
               if (canPop) ...[
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_rounded,
                     color: AppColors.carbon,
                     size: 22,
@@ -291,13 +291,13 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.accentMint,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Flexible(
+                        Flexible(
                           child: Text(
                             'RECOMMENDED ROUTINE',
                             style: TextStyle(
@@ -314,7 +314,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     const SizedBox(height: 3),
                     Text(
                       widget.title ?? 'Roadmap',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -349,7 +349,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           child: Container(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.actionDark,
               shape: BoxShape.circle,
             ),
@@ -411,7 +411,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     ),
                     Text(
                       '$masteryPercent%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -435,7 +435,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.accentMint,
                             shape: BoxShape.circle,
                           ),
@@ -453,7 +453,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       ],
                     ),
                     const SizedBox(height: 3),
-                    const Text(
+                    Text(
                       'Progression Status',
                       style: TextStyle(
                         fontSize: 15,
@@ -491,7 +491,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     const SizedBox(height: 1),
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.carbon,
@@ -548,13 +548,13 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                           Container(
                             width: 5,
                             height: 5,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppColors.accentMint,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 5),
-                          const Text(
+                          Text(
                             'CURRENT FOCUS',
                             style: TextStyle(
                               fontSize: 8.5,
@@ -568,7 +568,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       const SizedBox(height: 6),
                       Text(
                         activeExercise.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.carbon,
@@ -581,7 +581,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       const SizedBox(height: 4),
                       Text(
                         'Lvl ${activeExercise.level} • ${activeExercise.repRange}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.stone,
                           height: 1.2,
@@ -625,14 +625,14 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: AppColors.borderSubtle),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.trending_up_rounded,
                               size: 10,
                               color: AppColors.stone,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             'NEXT TARGET',
                             style: TextStyle(
                               fontSize: 8.5,
@@ -648,7 +648,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         nextUnlockExercise != null
                             ? nextUnlockExercise.name
                             : 'Ladder Peak',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.carbon,
@@ -663,7 +663,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         nextUnlockExercise != null
                             ? 'Target 3 × ${activeExercise.maxTargetReps} reps'
                             : 'Top progression reached',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.stone,
                           height: 1.2,
@@ -822,7 +822,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.actionDark,
                       shape: BoxShape.circle,
                     ),
@@ -831,7 +831,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                   Flexible(
                     child: Text(
                       '${currentLadder.pairCategory.toUpperCase()} • ${currentLadder.movementType.toUpperCase()}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -853,7 +853,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           children: [
             Text(
               'Selected Level $displayCurrentLevel of ${pathExercises.length}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.stone,
@@ -863,7 +863,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
               Flexible(
                 child: Text(
                   currentPath!.equipment!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                     color: AppColors.stone,
@@ -889,7 +889,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.alt_route_rounded,
                   size: 20,
                   color: AppColors.actionDark,
@@ -898,7 +898,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 Expanded(
                   child: Text(
                     'Active workout is on "${activeExercise.pathName}". Tap any progression below to select it for your routine.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       color: AppColors.carbon,
                       height: 1.3,
@@ -950,7 +950,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           color: AppColors.surfaceWhite,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.borderSubtle),
+            side: BorderSide(color: AppColors.borderSubtle),
           ),
           elevation: 4,
           shadowColor: Colors.black.withValues(alpha: 0.08),
@@ -961,7 +961,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         offset: const Offset(0, 28),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: AppColors.borderSubtle),
+          side: BorderSide(color: AppColors.borderSubtle),
         ),
         onSelected: (selectedPathId) async {
           HapticFeedback.selectionClick();
@@ -1047,7 +1047,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                   ),
                   if (isSelected) ...[
                     const SizedBox(width: 8),
-                    const Icon(
+                    Icon(
                       Icons.check_rounded,
                       size: 15,
                       color: AppColors.actionDark,
@@ -1070,7 +1070,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
             children: [
               Text(
                 buttonLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
                   color: AppColors.carbon,
@@ -1078,7 +1078,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 ),
               ),
               const SizedBox(width: 2),
-              const Icon(
+              Icon(
                 Icons.arrow_drop_down_rounded,
                 size: 15,
                 color: AppColors.stone,
@@ -1098,7 +1098,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
       color: AppColors.surfaceWhite,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.borderSubtle),
+        side: BorderSide(color: AppColors.borderSubtle),
       ),
       clipBehavior: Clip.antiAlias,
       child: Theme(
@@ -1114,13 +1114,13 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.menu_book_rounded,
               size: 15,
               color: AppColors.actionDark,
             ),
           ),
-          title: const Text(
+          title: Text(
             'Form Doctrine & Wiki Standards',
             style: TextStyle(
               fontSize: 12.5,
@@ -1130,10 +1130,10 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
           ),
           subtitle: Text(
             '${ladder.generalFormCues.length} cues straight from Reddit BWF Wiki',
-            style: const TextStyle(fontSize: 10.5, color: AppColors.stone),
+            style: TextStyle(fontSize: 10.5, color: AppColors.stone),
           ),
           children: [
-            const Divider(height: 1, color: AppColors.borderSubtle),
+            Divider(height: 1, color: AppColors.borderSubtle),
             const SizedBox(height: 10),
             ...ladder.generalFormCues.map(
               (cue) => Padding(
@@ -1145,7 +1145,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       margin: const EdgeInsets.only(top: 4),
                       width: 5,
                       height: 5,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.actionDark,
                         shape: BoxShape.circle,
                       ),
@@ -1154,7 +1154,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     Expanded(
                       child: Text(
                         cue,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11.5,
                           color: AppColors.carbon,
                           height: 1.35,
@@ -1176,7 +1176,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.fitness_center_rounded,
                       size: 14,
                       color: AppColors.stone,
@@ -1185,7 +1185,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     Expanded(
                       child: Text(
                         ladder.equipmentNote!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.stone,
@@ -1235,7 +1235,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
               Container(
                 width: 28,
                 height: 28,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.actionDark,
                   shape: BoxShape.circle,
                 ),
@@ -1260,7 +1260,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                         Flexible(
                           child: Text(
                             exercise.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: AppColors.carbon,
@@ -1283,7 +1283,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                               ),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'BRANCH',
                               style: TextStyle(
                                 fontSize: 8.5,
@@ -1299,7 +1299,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     const SizedBox(height: 2),
                     Text(
                       exercise.repRange,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.accentMint,
@@ -1317,7 +1317,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppColors.accentMintBorder),
                 ),
-                child: const Text(
+                child: Text(
                   'Selected',
                   style: TextStyle(
                     fontSize: 10,
@@ -1340,7 +1340,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
               ),
               child: Text(
                 cue,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   color: AppColors.stone,
                   height: 1.35,
@@ -1393,7 +1393,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                   alignment: Alignment.center,
                   child: Text(
                     '${exercise.level}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.stone,
@@ -1411,7 +1411,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                           Flexible(
                             child: Text(
                               'Level ${exercise.level} • ${exercise.name}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.carbon,
@@ -1433,7 +1433,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                                 ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'BRANCH',
                                 style: TextStyle(
                                   fontSize: 8.5,
@@ -1449,7 +1449,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '${exercise.repRange} • Tap to select',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.stone,
                         ),
@@ -1457,7 +1457,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
                   color: AppColors.stone,
@@ -1478,7 +1478,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.alt_route_rounded,
                       size: 15,
                       color: AppColors.actionDark,
@@ -1487,7 +1487,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
                     Expanded(
                       child: Text(
                         exercise.branchPoint!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           color: AppColors.carbon,
                           height: 1.3,
@@ -1514,7 +1514,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Select Level ${exercise.level}?',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
             color: AppColors.carbon,
@@ -1523,7 +1523,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         ),
         content: Text(
           'Set "${exercise.name}" (${exercise.pathName}) as your active exercise in routine for ${ladder.title}?',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13.5,
             color: AppColors.stone,
             height: 1.4,
@@ -1532,7 +1532,7 @@ class ProgressionLadderScreenState extends State<ProgressionLadderScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
               style: TextStyle(
                 color: AppColors.stone,

@@ -39,7 +39,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceWhite,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
+        title: Text(
           'Discard Workout?',
           style: TextStyle(
             fontSize: 18,
@@ -48,7 +48,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             letterSpacing: -0.3,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Your active workout session and current logged sets will be cleared.',
           style: TextStyle(
             fontSize: 13.5,
@@ -59,7 +59,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Keep Training',
               style: TextStyle(color: AppColors.stone, fontWeight: FontWeight.w700),
             ),
@@ -91,7 +91,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       builder: (context, _) {
         final session = widget.controller.activeSession;
         if (session == null) {
-          return const Scaffold(
+          return Scaffold(
             backgroundColor: AppColors.canvas,
             body: Center(
               child: Text(
@@ -111,7 +111,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             scrolledUnderElevation: 0,
             systemOverlayStyle: SystemUiOverlayStyle.dark,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.carbon, size: 22),
+              icon: Icon(Icons.arrow_back_rounded, color: AppColors.carbon, size: 22),
               tooltip: 'Minimize / Back',
               onPressed: () => Navigator.pop(context),
             ),
@@ -123,7 +123,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Active Workout',
                       style: TextStyle(
                         fontSize: 17,
@@ -136,7 +136,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.timer_outlined,
                             size: 11,
                             color: AppColors.actionDark,
@@ -144,7 +144,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           const SizedBox(width: 3),
                           Text(
                             _formatDuration(session.durationSeconds),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: AppColors.actionDark,
@@ -178,7 +178,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 },
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, color: AppColors.stone, size: 22),
+                icon: Icon(Icons.more_vert_rounded, color: AppColors.stone, size: 22),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 color: AppColors.surfaceWhite,
                 onSelected: (value) {
@@ -196,7 +196,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   }
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'next',
                     child: Row(
                       children: [
@@ -206,7 +206,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'ladder',
                     child: Row(
                       children: [
@@ -237,7 +237,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 child: Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.actionDark,
                     shape: BoxShape.circle,
                   ),
@@ -539,7 +539,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.actionDark,
                       shape: BoxShape.circle,
                     ),
@@ -547,7 +547,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   const SizedBox(width: 8),
                   Text(
                     stageName.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: AppColors.stone,
@@ -559,7 +559,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               const SizedBox(height: 4),
               Text(
                 pairTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: AppColors.carbon,
@@ -593,11 +593,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.timer_outlined, size: 15, color: AppColors.actionDark),
+              Icon(Icons.timer_outlined, size: 15, color: AppColors.actionDark),
               const SizedBox(width: 5),
               Text(
                 _formatDuration(session.durationSeconds),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.carbon,
@@ -750,11 +750,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.fitness_center_rounded, size: 13, color: AppColors.stone),
+                    Icon(Icons.fitness_center_rounded, size: 13, color: AppColors.stone),
                     const SizedBox(width: 5),
                     Text(
                       'SET ${activeSetIndex + 1} OF $totalSets',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -774,11 +774,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.speed_rounded, size: 14, color: AppColors.stone),
+                    Icon(Icons.speed_rounded, size: 14, color: AppColors.stone),
                     const SizedBox(width: 5),
                     Text(
                       '3-0-1-0 Tempo',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.carbon,
@@ -801,7 +801,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   children: [
                     Text(
                       currentLadder.movementType.toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.stone,
@@ -814,7 +814,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         Flexible(
                           child: Text(
                             currentExercise.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppColors.carbon,
@@ -848,7 +848,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       currentExercise.formCues.isNotEmpty
                           ? currentExercise.formCues.first
                           : 'Controlled execution • Full range of motion',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         color: AppColors.stone,
                         height: 1.3,
@@ -867,12 +867,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.alt_route_rounded, size: 14, color: AppColors.actionDark),
+                            Icon(Icons.alt_route_rounded, size: 14, color: AppColors.actionDark),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
                                 currentExercise.branchPoint!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10.5,
                                   color: AppColors.carbon,
                                   fontWeight: FontWeight.w600,
@@ -911,11 +911,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.tune_rounded, size: 16, color: AppColors.actionDark),
+                      Icon(Icons.tune_rounded, size: 16, color: AppColors.actionDark),
                       const SizedBox(height: 2),
                       Text(
                         'Lvl ${currentExercise.level}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.carbon,
@@ -982,7 +982,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   children: [
                     Text(
                       isTimerRunning ? 'REST COUNTDOWN' : 'TARGET REST',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: AppColors.stone,
@@ -992,7 +992,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                     const SizedBox(height: 2),
                     Text(
                       timerText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 42,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -1022,7 +1022,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           const SizedBox(width: 4),
                           Text(
                             isTimerRunning ? 'RESTING' : 'READY',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: AppColors.carbon,
@@ -1115,7 +1115,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'COMPLETED WORK',
                 style: TextStyle(
                   fontSize: 10.5,
@@ -1144,11 +1144,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.bolt_rounded, size: 12, color: AppColors.stone),
+                      Icon(Icons.bolt_rounded, size: 12, color: AppColors.stone),
                       const SizedBox(width: 3),
                       Text(
                         'Target: ${currentExercise.minTargetReps}–${currentExercise.maxTargetReps} Reps',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.carbon,
@@ -1196,11 +1196,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   child: Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.inset,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.remove_rounded,
                       color: AppColors.carbon,
                       size: 22,
@@ -1216,7 +1216,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   children: [
                     Text(
                       '${currentSet.reps}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: AppColors.carbon,
@@ -1225,7 +1225,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
+                    Text(
                       'Reps',
                       style: TextStyle(
                         fontSize: 15,
@@ -1372,11 +1372,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           Container(
             width: 38,
             height: 38,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.inset,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.lightbulb_outline_rounded,
               color: AppColors.actionDark,
               size: 20,
@@ -1387,7 +1387,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'TECHNIQUE FOCUS',
                   style: TextStyle(
                     fontSize: 10.5,
@@ -1399,7 +1399,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 const SizedBox(height: 3),
                 Text(
                   tip,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.stone,
@@ -1448,7 +1448,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.borderSubtle),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.swap_horiz_rounded,
                 color: AppColors.actionDark,
                 size: 22,
@@ -1459,7 +1459,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'ANTAGONIST SUPER-SET',
                     style: TextStyle(
                       fontSize: 10,
@@ -1471,7 +1471,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${otherExercise.name} (3 × 8)',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.carbon,
@@ -1482,7 +1482,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${otherLadder.defaultRestSeconds}s rest interval awaits',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       color: AppColors.stone,
                     ),
@@ -1490,7 +1490,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.carbon, size: 22),
+            Icon(Icons.chevron_right_rounded, color: AppColors.carbon, size: 22),
           ],
         ),
       ),
@@ -1631,7 +1631,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'WARM-UP • PHASE 1 OF 5',
                       style: TextStyle(
@@ -1666,7 +1666,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 ),
                 child: Text(
                   '$completedCount / ${warmups.length} done',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     color: AppColors.carbon,
@@ -1690,14 +1690,14 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.inset,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.shield_outlined, color: AppColors.actionDark, size: 20),
+                  child: Icon(Icons.shield_outlined, color: AppColors.actionDark, size: 20),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Prime scapulae, wrists, and core to prevent injury and maximize strength.',
                     style: TextStyle(fontSize: 13, color: AppColors.stone, height: 1.35),
@@ -1722,12 +1722,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.borderSubtle),
+                    side: BorderSide(color: AppColors.borderSubtle),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     backgroundColor: AppColors.surfaceWhite,
                   ),
                   onPressed: widget.controller.markAllWarmupsCompleted,
-                  child: const Text(
+                  child: Text(
                     'Mark All Done',
                     style: TextStyle(color: AppColors.carbon, fontWeight: FontWeight.w700),
                   ),
@@ -1808,7 +1808,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${w.prescription} • ${w.target}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.stone,
@@ -2000,10 +2000,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 ),
               ],
             ),
-            child: const Icon(Icons.emoji_events_rounded, size: 40, color: AppColors.actionDark),
+            child: Icon(Icons.emoji_events_rounded, size: 40, color: AppColors.actionDark),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Workout Complete!',
             style: TextStyle(
               fontSize: 26,
@@ -2013,7 +2013,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Great discipline. Session logged to your history.',
             style: TextStyle(fontSize: 13, color: AppColors.stone),
           ),
@@ -2060,7 +2060,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'LOGBOOK NOTES',
                   style: TextStyle(
                     fontSize: 10.5,
@@ -2073,23 +2073,23 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 TextField(
                   controller: _notesController,
                   maxLines: 3,
-                  style: const TextStyle(color: AppColors.carbon, fontSize: 13.5),
+                  style: TextStyle(color: AppColors.carbon, fontSize: 13.5),
                   decoration: InputDecoration(
                     hintText: 'Notes on form, fatigue, or progression levels...',
-                    hintStyle: const TextStyle(color: AppColors.stone),
+                    hintStyle: TextStyle(color: AppColors.stone),
                     filled: true,
                     fillColor: AppColors.inset,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: AppColors.borderSubtle),
+                      borderSide: BorderSide(color: AppColors.borderSubtle),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: AppColors.borderSubtle),
+                      borderSide: BorderSide(color: AppColors.borderSubtle),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: AppColors.actionDark),
+                      borderSide: BorderSide(color: AppColors.actionDark),
                     ),
                   ),
                 ),
@@ -2144,7 +2144,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               color: AppColors.carbon,
@@ -2153,7 +2153,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
               color: AppColors.stone,

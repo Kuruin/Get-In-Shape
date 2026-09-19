@@ -83,7 +83,7 @@ class RestTimerBanner extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'REST PERIOD',
                             style: TextStyle(
                               color: AppColors.primary,
@@ -100,7 +100,7 @@ class RestTimerBanner extends StatelessWidget {
                                 color: AppColors.surfaceBorder,
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'PAUSED',
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
@@ -114,7 +114,7 @@ class RestTimerBanner extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         _formatDuration(controller.restRemainingSeconds),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -141,7 +141,7 @@ class RestTimerBanner extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                         ),
-                        child: const Text(
+                        child: Text(
                           '+30s',
                           style: TextStyle(
                             color: AppColors.primary,
@@ -165,7 +165,7 @@ class RestTimerBanner extends StatelessWidget {
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       tooltip: 'Skip rest',
-                      icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 20),
+                      icon: Icon(Icons.close_rounded, color: AppColors.textMuted, size: 20),
                       onPressed: controller.stopRestTimer,
                     ),
                   ],

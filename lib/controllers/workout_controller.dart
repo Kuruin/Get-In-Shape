@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/exercise.dart';
 import '../models/workout_session.dart';
@@ -39,6 +39,7 @@ class WorkoutController extends ChangeNotifier {
   bool _isSessionPaused = false;
 
   String _globalTrackMode = 'recommended';
+  ThemeMode _themeMode = ThemeMode.system;
 
   WorkoutController(this._storage) {
     _loadInitialData();
@@ -52,6 +53,7 @@ class WorkoutController extends ChangeNotifier {
   StorageService get storage => _storage;
   int get activePairStepIndex => _activePairStepIndex;
   String get globalTrackMode => _globalTrackMode;
+  ThemeMode get themeMode => _themeMode;
 
   int get restRemainingSeconds => _restRemainingSeconds;
   int get restTotalSeconds => _restTotalSeconds;
@@ -131,9 +133,26 @@ class WorkoutController extends ChangeNotifier {
     _activeSession = _storage.getActiveDraft();
     _userProfile = _storage.getUserProfile();
     _globalTrackMode = _storage.getGlobalTrackMode();
+    final modeStr = _storage.getThemeMode();
+    if (modeStr == 'light') {
+      _themeMode = ThemeMode.light;
+    } else if (modeStr == 'dark') {
+      _themeMode = ThemeMode.dark;
+    } else {
+      _themeMode = ThemeMode.system;
+    }
     if (_activeSession != null) {
       _startSessionDurationTimer();
     }
+    notifyListeners();
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    final modeStr = mode == ThemeMode.light
+        ? 'light'
+        : (mode == ThemeMode.dark ? 'dark' : 'system');
+    await _storage.setThemeMode(modeStr);
     notifyListeners();
   }
 

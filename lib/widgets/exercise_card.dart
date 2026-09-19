@@ -44,7 +44,7 @@ class ExerciseCard extends StatelessWidget {
                         children: [
                           Text(
                             ladderTitle.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
@@ -54,7 +54,7 @@ class ExerciseCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             exercise.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary,
@@ -65,7 +65,7 @@ class ExerciseCard extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                      icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -73,7 +73,7 @@ class ExerciseCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   exercise.description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                     height: 1.45,
@@ -95,12 +95,12 @@ class ExerciseCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.check_rounded, size: 16, color: AppColors.primary),
+                      Icon(Icons.check_rounded, size: 16, color: AppColors.primary),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           cue,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13.5,
                             color: AppColors.textPrimary,
                             height: 1.35,
@@ -166,7 +166,7 @@ class ExerciseCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   ladderTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -183,7 +183,7 @@ class ExerciseCard extends StatelessWidget {
                     color: AppColors.surfaceElevated,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textSecondary),
+                  child: Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textSecondary),
                 ),
               ),
               if (trailing != null) ...[
@@ -195,7 +195,7 @@ class ExerciseCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             exercise.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -205,11 +205,11 @@ class ExerciseCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.adjust_rounded, size: 14, color: AppColors.primary),
+              Icon(Icons.adjust_rounded, size: 14, color: AppColors.primary),
               const SizedBox(width: 5),
               Text(
                 'Target: ${exercise.repRange}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,

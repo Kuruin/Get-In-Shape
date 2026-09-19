@@ -21,7 +21,7 @@ void main() async {
             children: [
               const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.accentRed),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Something went wrong',
                 style: TextStyle(
                   fontSize: 18,
@@ -33,7 +33,7 @@ void main() async {
               Text(
                 kDebugMode ? details.exceptionAsString() : 'Please restart the application.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -70,40 +70,55 @@ class BwfWorkoutApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BWF Recommended Routine',
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.light,
-      theme: AppTheme.theme.copyWith(
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: ZoomPageTransitionsBuilder(),
-            TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
-            TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
-            TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
-            TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
-          },
-        ),
-      ),
-      builder: (context, child) {
-        final mediaQueryData = MediaQuery.of(context);
-        return MediaQuery(
-          data: mediaQueryData.copyWith(
-            textScaler: mediaQueryData.textScaler.clamp(
-              maxScaleFactor: 1.1,
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'BWF Recommended Routine',
+          debugShowCheckedModeBanner: false,
+          themeMode: controller.themeMode,
+          theme: AppTheme.lightTheme.copyWith(
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: ZoomPageTransitionsBuilder(),
+                TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
+                TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
+                TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
+                TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
+              },
             ),
           ),
-          child: child ?? const SizedBox.shrink(),
+          darkTheme: AppTheme.darkTheme.copyWith(
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: ZoomPageTransitionsBuilder(),
+                TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
+                TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
+                TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
+                TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
+              },
+            ),
+          ),
+          builder: (context, child) {
+            final mediaQueryData = MediaQuery.of(context);
+            final isDark = controller.themeMode == ThemeMode.system
+                ? mediaQueryData.platformBrightness == Brightness.dark
+                : controller.themeMode == ThemeMode.dark;
+            AppColors.isDark = isDark;
+            return MediaQuery(
+              data: mediaQueryData.copyWith(
+                textScaler: mediaQueryData.textScaler.clamp(
+                  maxScaleFactor: 1.1,
+                ),
+              ),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
+          home: controller.storage.isOnboardingCompleted()
+              ? HomeScreen(controller: controller)
+              : ProfileSetupScreen(controller: controller),
         );
       },
-      home: ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          return controller.storage.isOnboardingCompleted()
-              ? HomeScreen(controller: controller)
-              : ProfileSetupScreen(controller: controller);
-        },
-      ),
     );
   }
 }

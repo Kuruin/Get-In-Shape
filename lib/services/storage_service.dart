@@ -13,6 +13,7 @@ class StorageService {
   static const String _keyOnboardingCompleted = 'bwf_onboarding_completed';
   static const String _keyGlobalTrackMode = 'bwf_global_track_mode';
   static const String _keyAppStartDate = 'bwf_app_start_date';
+  static const String _keyThemeMode = 'bwf_theme_mode';
 
   final SharedPreferences _prefs;
 
@@ -182,6 +183,15 @@ class StorageService {
 
   Future<void> setAppStartDate(DateTime date) async {
     await _prefs.setString(_keyAppStartDate, date.toIso8601String());
+  }
+
+  // Theme Mode ('system', 'light', 'dark')
+  String getThemeMode() {
+    return _prefs.getString(_keyThemeMode) ?? 'system';
+  }
+
+  Future<void> setThemeMode(String mode) async {
+    await _prefs.setString(_keyThemeMode, mode);
   }
 
   // Complete Reset of All Stats, History, Drafts, and Profile

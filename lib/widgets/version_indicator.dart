@@ -23,7 +23,7 @@ class VersionIndicator extends StatelessWidget {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         fontFeatures: [FontFeature.tabularFigures()],

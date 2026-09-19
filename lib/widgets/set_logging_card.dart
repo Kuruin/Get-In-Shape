@@ -35,7 +35,7 @@ class SetLoggingCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'SETS TO COMPLETE',
                 style: TextStyle(
                   color: AppColors.textMuted,
@@ -46,7 +46,7 @@ class SetLoggingCard extends StatelessWidget {
               ),
               if (controller.checkProgressionReady(ladderId))
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
@@ -54,7 +54,7 @@ class SetLoggingCard extends StatelessWidget {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.arrow_upward_rounded, size: 12, color: AppColors.primary),
                       SizedBox(width: 4),
                       Text(
@@ -125,7 +125,7 @@ class SetLoggingCard extends StatelessWidget {
             children: [
               Text(
                 'Set ${index + 1}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -161,7 +161,7 @@ class SetLoggingCard extends StatelessWidget {
                     }
                   },
                   borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Icon(Icons.remove, size: 16, color: AppColors.textSecondary),
                   ),
@@ -171,7 +171,7 @@ class SetLoggingCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     '${set.reps}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -184,7 +184,7 @@ class SetLoggingCard extends StatelessWidget {
                     controller.updateSetReps(ladderId, index, set.reps + 1);
                   },
                   borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Icon(Icons.add, size: 16, color: AppColors.textSecondary),
                   ),

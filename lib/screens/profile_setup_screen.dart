@@ -97,7 +97,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.fitness_center_rounded,
                           color: AppColors.accentMint,
@@ -109,7 +109,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(height: 24),
 
                   // Title & Subtitle
-                  const Text(
+                  Text(
                     'Welcome to BWF Routine',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -120,7 +120,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Bodyweight Fitness Recommended Routine.\nTrack authentic paired progressions offline.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -150,7 +150,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'YOUR NAME OR ATHLETE CALLSIGN',
                           style: TextStyle(
                             fontSize: 11,
@@ -164,19 +164,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           controller: _nameController,
                           focusNode: _nameFocusNode,
                           textCapitalization: TextCapitalization.words,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: AppColors.obsidian,
                           ),
                           decoration: InputDecoration(
                             hintText: 'e.g. Manav, Alex, or Titan',
-                            hintStyle: const TextStyle(
+                            hintStyle: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                               color: AppColors.stoneMuted,
                             ),
-                            prefixIcon: const Icon(
+                            prefixIcon: Icon(
                               Icons.person_outline_rounded,
                               color: AppColors.stoneMuted,
                               size: 20,
@@ -193,7 +193,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
+                              borderSide: BorderSide(
                                 color: AppColors.accentMint,
                                 width: 2,
                               ),
@@ -203,7 +203,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(height: 22),
 
                         // Goal Selection
-                        const Text(
+                        Text(
                           'PRIMARY TRAINING GOAL',
                           style: TextStyle(
                             fontSize: 11,
@@ -320,13 +320,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     onPressed: _isSubmitting ? null : _handleContinueAsGuest,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.obsidian,
-                      side: const BorderSide(color: AppColors.stoneBorder, width: 1.5),
+                      side: BorderSide(color: AppColors.stoneBorder, width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Continue as Guest',
                       style: TextStyle(
                         fontSize: 14,
@@ -345,7 +345,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.emerald200),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(

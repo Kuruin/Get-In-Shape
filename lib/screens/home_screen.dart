@@ -95,14 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.accentMintTint,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.bolt_rounded,
                         color: AppColors.obsidian,
                         size: 20,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Text(
+                    Text(
                       "What's New in BWF Tracker",
                       style: TextStyle(
                         fontSize: 18,
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 4, right: 10),
             child: Icon(
               Icons.check_circle_rounded,
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13.5,
                   color: AppColors.stone,
                   height: 1.4,
@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   TextSpan(
                     text: '$title: ',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: AppColors.obsidian,
                     ),
@@ -248,13 +248,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppColors.accentMint,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             'WORKOUT RUNNING',
                             style: TextStyle(
                               fontSize: 10.5,
@@ -277,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                const Text(
+                Text(
                   'Workout In Progress',
                   style: TextStyle(
                     fontSize: 20,
@@ -287,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'A workout session is currently active. You can resume right where you left off or discard it to start fresh.',
                   style: TextStyle(
                     fontSize: 12.5,
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? completedSets / totalSets
                               : 0.0,
                           backgroundColor: AppColors.stoneBorder,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
+                          valueColor: AlwaysStoppedAnimation<Color>(
                             AppColors.obsidian,
                           ),
                           minHeight: 6,
@@ -347,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         alignment: Alignment.centerRight,
                         child: Text(
                           '$percent% completed',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                             color: AppColors.stoneMuted,
@@ -482,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Discard Current Workout?',
               style: TextStyle(
                 fontSize: 18,
@@ -491,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'All recorded sets and progress for this active session will be removed. This cannot be undone.',
               style: TextStyle(fontSize: 13, color: AppColors.stoneMuted),
             ),
@@ -544,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
             color: AppColors.stoneMuted,
@@ -553,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             color: AppColors.obsidian,
@@ -579,280 +579,406 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetCtx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.stoneBorder,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Profile Header
-                Row(
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: const BoxDecoration(
-                        color: AppColors.obsidian,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: AppColors.accentMint,
-                          size: 28,
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.stoneBorder,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    const SizedBox(height: 20),
+
+                    // Profile Header
+                    Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppColors.obsidian,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: AppColors.accentMint,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Flexible(
-                                child: Text(
-                                  profile?.name ?? 'Athlete',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.obsidian,
-                                    letterSpacing: -0.4,
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      profile?.name ?? 'Athlete',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.obsidian,
+                                        letterSpacing: -0.4,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  const SizedBox(width: 6),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(sheetCtx);
+                                      _showEditNameDialog(context);
+                                    },
+                                    child: Icon(
+                                      Icons.edit_rounded,
+                                      size: 16,
+                                      color: AppColors.stoneMuted,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(sheetCtx);
-                                  _showEditNameDialog(context);
-                                },
-                                child: const Icon(
-                                  Icons.edit_rounded,
-                                  size: 16,
+                              const SizedBox(height: 2),
+                              Text(
+                                profile?.isGuest == true
+                                    ? 'Guest Athlete (Local Account)'
+                                    : 'Athlete Profile',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
                                   color: AppColors.stoneMuted,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Goal info
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.stoneTint,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.stoneBorder),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            profile?.isGuest == true
-                                ? 'Guest Athlete (Local Account)'
-                                : 'Athlete Profile',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                            'ACTIVE TRAINING GOAL',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.stoneMuted,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            profile?.fitnessGoal ?? 'Full Body Routine Progression',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.obsidian,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 18),
+                    const SizedBox(height: 12),
 
-                // Goal info
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.stoneTint,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.stoneBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'ACTIVE TRAINING GOAL',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.stoneMuted,
-                          letterSpacing: 0.6,
-                        ),
+                    // Local device storage badge
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        profile?.fitnessGoal ?? 'Full Body Routine Progression',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.obsidian,
-                        ),
+                      decoration: BoxDecoration(
+                        color: AppColors.emerald50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.emerald200),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Local device storage badge
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.emerald50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.emerald200),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.shield_outlined,
-                        size: 16,
-                        color: AppColors.emerald700,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '100% Private · All stats and workouts are stored locally on your device.',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.shield_outlined,
+                            size: 16,
                             color: AppColors.emerald700,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Quick stats summary
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceCard,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.stoneBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'LOGGED SESSIONS',
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '100% Private · All stats and workouts are stored locally on your device.',
                               style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.stoneMuted,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.emerald700,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${history.length}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.obsidian,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceCard,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.stoneBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'TOTAL REPS',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.stoneMuted,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              totalReps.toLocaleString(),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.obsidian,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
+                    const SizedBox(height: 14),
 
-                // Reset All Stats & Data button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.accentRed,
-                      side: const BorderSide(
-                        color: AppColors.accentRed,
-                        width: 1.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: () {
-                      _confirmResetAllData(context, sheetCtx);
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    // Quick stats summary
+                    Row(
                       children: [
-                        Icon(
-                          Icons.delete_forever_rounded,
-                          size: 18,
-                          color: AppColors.accentRed,
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceCard,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.stoneBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'LOGGED SESSIONS',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.stoneMuted,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${history.length}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.obsidian,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Reset All Stats & Data',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.accentRed,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceCard,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.stoneBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TOTAL REPS',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.stoneMuted,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  totalReps.toLocaleString(),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.obsidian,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 14),
+
+                    // Theme & Appearance Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.stoneBorder),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.palette_outlined,
+                                size: 16,
+                                color: AppColors.obsidian,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'APPEARANCE & THEME',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.stoneMuted,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.stoneTint,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.stoneBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildThemeOption(
+                                  label: 'System',
+                                  icon: Icons.brightness_auto_rounded,
+                                  mode: ThemeMode.system,
+                                  setSheetState: setSheetState,
+                                ),
+                                _buildThemeOption(
+                                  label: 'Light',
+                                  icon: Icons.light_mode_rounded,
+                                  mode: ThemeMode.light,
+                                  setSheetState: setSheetState,
+                                ),
+                                _buildThemeOption(
+                                  label: 'Dark',
+                                  icon: Icons.dark_mode_rounded,
+                                  mode: ThemeMode.dark,
+                                  setSheetState: setSheetState,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Reset All Stats & Data button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.accentRed,
+                          side: const BorderSide(
+                            color: AppColors.accentRed,
+                            width: 1.5,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () {
+                          _confirmResetAllData(context, sheetCtx);
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.delete_forever_rounded,
+                              size: 18,
+                              color: AppColors.accentRed,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Reset All Stats & Data',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.accentRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildThemeOption({
+    required String label,
+    required IconData icon,
+    required ThemeMode mode,
+    required StateSetter setSheetState,
+  }) {
+    final isSelected = widget.controller.themeMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          widget.controller.setThemeMode(mode);
+          setSheetState(() {});
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.surfaceCard : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? AppColors.obsidian : AppColors.stoneMuted,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? AppColors.obsidian : AppColors.stoneMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -866,7 +992,7 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Row(
+          title: Row(
             children: [
               Icon(
                 Icons.warning_amber_rounded,
@@ -886,7 +1012,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          content: const Text(
+          content: Text(
             'This will permanently delete all workout history, reset progression levels to Level 1, clear active drafts, and reset your profile. You will be returned to the profile setup screen.',
             style: TextStyle(
               fontSize: 13.5,
@@ -897,7 +1023,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
                   color: AppColors.stoneMuted,
@@ -941,7 +1067,7 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
+          title: Text(
             'Edit Athlete Name',
             style: TextStyle(
               fontSize: 18,
@@ -966,7 +1092,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
                   color: AppColors.stoneMuted,
@@ -1097,10 +1223,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     left: 0,
                     right: 0,
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF5F5F4),
+                      decoration: BoxDecoration(
+                        color: AppColors.stoneTint,
                         border: Border(
-                          top: BorderSide(color: Color(0xFFE5E5E3), width: 1),
+                          top: BorderSide(color: AppColors.stoneBorder, width: 1),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -1231,8 +1357,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: avatarSize,
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.surfaceCard,
                       shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.stoneBorder),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.05),
@@ -1242,7 +1369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.stoneTint,
                         shape: BoxShape.circle,
                       ),
@@ -1262,7 +1389,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.accentMint,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.surfaceCard, width: 2),
                       ),
                     ),
                   ),
@@ -1284,7 +1411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(
+                      Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 18,
                         color: AppColors.stoneMuted,
@@ -1292,7 +1419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   if (profile?.isGuest == true)
-                    const Text(
+                    Text(
                       'Guest Account · Tap to view profile',
                       style: TextStyle(
                         fontSize: 10.5,
@@ -1301,7 +1428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     )
                   else
-                    const Text(
+                    Text(
                       'Tap to view profile & stats',
                       style: TextStyle(
                         fontSize: 10.5,
@@ -1315,40 +1442,83 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Action Button: Notification Bell
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            HapticFeedback.selectionClick();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'BWF Recommended Routine is fully synced and ready!',
+        // Action Buttons: Theme Toggle & Notification Bell
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                final currentMode = widget.controller.themeMode;
+                final isCurrentDark = currentMode == ThemeMode.system
+                    ? MediaQuery.platformBrightnessOf(context) == Brightness.dark
+                    : currentMode == ThemeMode.dark;
+                widget.controller.setThemeMode(
+                  isCurrentDark ? ThemeMode.light : ThemeMode.dark,
+                );
+              },
+              child: Container(
+                width: iconBtnSize,
+                height: iconBtnSize,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.stoneBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                duration: Duration(seconds: 2),
+                child: Icon(
+                  AppColors.isDark
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  color: AppColors.obsidian,
+                  size: isCompact ? 18 : 20,
+                ),
               ),
-            );
-          },
-          child: Container(
-            width: iconBtnSize,
-            height: iconBtnSize,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'BWF Recommended Routine is fully synced and ready!',
+                    ),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Container(
+                width: iconBtnSize,
+                height: iconBtnSize,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCard,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.stoneBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
+                child: Icon(
+                  Icons.notifications_none_rounded,
+                  color: AppColors.obsidian,
+                  size: isCompact ? 20 : 22,
+                ),
+              ),
             ),
-            child: Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.obsidian,
-              size: isCompact ? 20 : 22,
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -1441,7 +1611,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   width: 28,
                   height: 28,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.stoneTint,
                     shape: BoxShape.circle,
                   ),
@@ -1495,14 +1665,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               Container(
                                 width: 7,
                                 height: 7,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: AppColors.accentMint,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 5),
                             ] else if (isCompletedToday) ...[
-                              const Icon(
+                              Icon(
                                 Icons.check_circle_rounded,
                                 size: 12,
                                 color: AppColors.accentMintDark,
@@ -1561,7 +1731,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               activeDraft != null
                                   ? 'In Progress'
                                   : (isCompletedToday ? 'Finished' : '~1 hour'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.stoneMuted,
@@ -1570,7 +1740,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(width: 12),
-                        const Row(
+                        Row(
                           children: [
                             Icon(
                               Icons.military_tech_rounded,
@@ -1624,7 +1794,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     if (progressPercent == 100)
-                      const Icon(
+                      Icon(
                         Icons.check_rounded,
                         size: 22,
                         color: AppColors.obsidian,
@@ -1668,11 +1838,12 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               padding: EdgeInsets.fromLTRB(isCompact ? 16 : 20, 9, 8, 9),
               decoration: BoxDecoration(
-                color: AppColors.obsidian,
+                color: AppColors.isDark ? AppColors.stoneBorder : AppColors.obsidian,
                 borderRadius: BorderRadius.circular(30),
+                border: AppColors.isDark ? Border.all(color: AppColors.primary, width: 1.5) : null,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: AppColors.isDark ? 0.3 : 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -1697,8 +1868,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     width: 30,
                     height: 30,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: AppColors.isDark ? AppColors.canvas : Colors.white,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -1708,7 +1879,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ? Icons.replay_rounded
                                 : Icons.arrow_forward_rounded),
                       size: 16,
-                      color: AppColors.obsidian,
+                      color: AppColors.isDark ? Colors.white : AppColors.obsidian,
                     ),
                   ),
                 ],
@@ -1732,7 +1903,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
@@ -1931,11 +2102,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 width: isCompact ? 22 : 24,
                 height: isCompact ? 22 : 24,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.accentMintTint,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.fitness_center_rounded,
                   size: 13,
                   color: AppColors.accentMintDark,
@@ -1965,7 +2136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? (totalReps / 500).clamp(0.0, 1.0)
                         : 0.0,
                     backgroundColor: AppColors.trackRing,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
+                    valueColor: AlwaysStoppedAnimation<Color>(
                       AppColors.accentMint,
                     ),
                     minHeight: 5,
@@ -1977,7 +2148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 totalReps > 0
                     ? '${((totalReps / 500).clamp(0.0, 1.0) * 100).round()}%'
                     : '0%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                   color: AppColors.stoneMuted,
@@ -2070,7 +2241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
               },
-              child: const Text(
+              child: Text(
                 'Log Reps',
                 style: TextStyle(
                   fontSize: 12,
@@ -2141,7 +2312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        const Divider(height: 1, color: AppColors.stoneBorder),
+                        Divider(height: 1, color: AppColors.stoneBorder),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -2155,7 +2326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.swap_vert_rounded,
                                 size: 14,
                                 color: AppColors.stoneMuted,
@@ -2167,7 +2338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ? 'Rest 60s & Alternate'
                                           : pairBadgeLabel)
                                     : 'Rest 60s & Complete Triplet',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.obsidian,
@@ -2217,10 +2388,14 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.obsidian : Colors.white,
+          color: isSelected
+              ? (AppColors.isDark ? AppColors.stoneBorder : AppColors.obsidian)
+              : (AppColors.isDark ? AppColors.surfaceCard : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.obsidian : AppColors.borderSubtle,
+            color: isSelected
+                ? (AppColors.isDark ? Colors.white : AppColors.obsidian)
+                : AppColors.borderSubtle,
           ),
         ),
         child: Text(
@@ -2228,7 +2403,9 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.obsidian,
+            color: isSelected
+                ? Colors.white
+                : (AppColors.isDark ? AppColors.stoneMuted : AppColors.obsidian),
           ),
         ),
       ),
@@ -2317,7 +2494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               exercise.pathName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 8.5,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.obsidian,
@@ -2354,7 +2531,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             width: chevronSize,
             height: chevronSize,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.stoneTint,
               shape: BoxShape.circle,
             ),
@@ -2371,7 +2548,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // --- Active Workout Bar (no own background — unified with bottom nav container) ---
   Widget _buildActiveWorkoutBar() {
-    String _fmt(int s) {
+    String fmt(int s) {
       final m = s ~/ 60;
       final sec = s % 60;
       return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
@@ -2429,7 +2606,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // Timer
                           Text(
-                            _fmt(elapsed),
+                            fmt(elapsed),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -2467,7 +2644,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             // Thin divider separating bar from nav tabs
-            const Divider(height: 1, thickness: 1, color: Color(0xFFE5E5E3)),
+            Divider(height: 1, thickness: 1, color: AppColors.stoneBorder),
           ],
         );
       },
