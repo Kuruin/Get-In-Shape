@@ -15,6 +15,8 @@ import '../widgets/version_indicator.dart';
 
 typedef _HColors = AppColors;
 
+enum CalendarViewMode { dates, months, years }
+
 class HistoryScreen extends StatefulWidget {
   final WorkoutController controller;
 
@@ -31,17 +33,27 @@ class HistoryScreenState extends State<HistoryScreen> {
   bool _copyIconPressed = false;
   Timer? _copyResetTimer;
   final ScrollController historyScrollController = ScrollController();
+  final ScrollController _horizontalCalendarController = ScrollController();
+  final ScrollController _horizontalYearController = ScrollController();
+  bool _isHeatmapExpanded = true;
+  bool _isCalendarDropdownOpen = false;
+  CalendarViewMode _calendarViewMode = CalendarViewMode.dates;
+  int _yearsBase = 2020;
+  DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _selectedMonth = DateTime(now.year, now.month);
+    _yearsBase = (now.year ~/ 12) * 12;
   }
 
   @override
   void dispose() {
     historyScrollController.dispose();
+    _horizontalCalendarController.dispose();
+    _horizontalYearController.dispose();
     _copyResetTimer?.cancel();
     super.dispose();
   }
@@ -53,6 +65,55 @@ class HistoryScreenState extends State<HistoryScreen> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
+    }
+  }
+
+  void _scrollToCurrentDay() {
+    final now = DateTime.now();
+    if (_horizontalYearController.hasClients) {
+      final yearIndex = (_selectedMonth.year - 2020).clamp(0, 10);
+      final targetYearOffset = (yearIndex * 58.0) - 80.0;
+      _horizontalYearController.animateTo(
+        targetYearOffset.clamp(
+          0.0,
+          _horizontalYearController.position.maxScrollExtent,
+        ),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    if (_horizontalCalendarController.hasClients) {
+      final dayToFocus = (_selectedDate != null &&
+              _selectedDate!.year == _selectedMonth.year &&
+              _selectedDate!.month == _selectedMonth.month)
+          ? _selectedDate!.day
+          : (now.year == _selectedMonth.year && now.month == _selectedMonth.month
+              ? now.day
+              : 1);
+
+      // Each day item has width 48 + 8 margin = 56
+      final targetOffset = ((dayToFocus - 1) * 56.0) - 80.0;
+      _horizontalCalendarController.animateTo(
+        targetOffset.clamp(
+          0.0,
+          _horizontalCalendarController.position.maxScrollExtent,
+        ),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _toggleCalendarDropdown() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _isCalendarDropdownOpen = !_isCalendarDropdownOpen;
+    });
+    if (_isCalendarDropdownOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToCurrentDay();
+      });
     }
   }
 
@@ -398,90 +459,275 @@ class HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showMonthPickerSheet() {
+    int pickerYear = _selectedMonth.year;
+    final now = DateTime.now();
+
     showModalBottomSheet(
       context: context,
       enableDrag: true,
+      isScrollControlled: true,
       backgroundColor: _HColors.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        final now = DateTime.now();
-        final months = List.generate(
-          6,
-          (i) => DateTime(now.year, now.month - i),
-        );
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final monthNames = [
+              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+            ];
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: _HColors.stoneLight,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Select Month',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: _HColors.obsidian,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...months.map((m) {
-                final isSelected =
-                    m.year == _selectedMonth.year &&
-                    m.month == _selectedMonth.month;
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 0,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  selected: isSelected,
-                  selectedTileColor: _HColors.emerald50,
-                  title: Text(
-                    DateFormat('MMMM yyyy').format(m),
-                    style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.w800
-                          : FontWeight.w600,
-                      color: isSelected
-                          ? _HColors.emerald700
-                          : _HColors.obsidian,
-                      fontSize: 14,
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: _HColors.stoneLight,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(
-                          Icons.check_rounded,
-                          color: _HColors.accentMint,
-                          size: 20,
-                        )
-                      : null,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      _selectedMonth = m;
-                    });
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-            ],
-          ),
+                    const SizedBox(height: 16),
+
+                    // Header with Year Controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select Month & Year',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: _HColors.obsidian,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        // Quick Jump to Current
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() {
+                              pickerYear = now.year;
+                            });
+                            setState(() {
+                              _selectedMonth = DateTime(now.year, now.month);
+                              _selectedDate = DateTime(now.year, now.month, now.day);
+                            });
+                            Navigator.pop(ctx);
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToCurrentDay();
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _HColors.emerald50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: _HColors.emerald200),
+                            ),
+                            child: const Text(
+                              'Current',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _HColors.emerald700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Year Selector Bar with arrows
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _HColors.stoneTint,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _HColors.stoneLight),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left_rounded),
+                            color: _HColors.obsidian,
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              setModalState(() {
+                                pickerYear--;
+                              });
+                            },
+                          ),
+                          Text(
+                            '$pickerYear',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: _HColors.obsidian,
+                              letterSpacing: 0.5,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right_rounded),
+                            color: _HColors.obsidian,
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              setModalState(() {
+                                pickerYear++;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Quick Selectable Year Pills (2020..2030)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: List.generate(11, (idx) {
+                          final yr = 2020 + idx;
+                          final isYrSelected = yr == pickerYear;
+                          final isCurrentYr = yr == now.year;
+                          return GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setModalState(() {
+                                pickerYear = yr;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isYrSelected
+                                    ? _HColors.obsidian
+                                    : (isCurrentYr
+                                        ? _HColors.emerald50
+                                        : _HColors.surfaceCard),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isYrSelected
+                                      ? _HColors.obsidian
+                                      : (isCurrentYr
+                                          ? _HColors.accentMint
+                                          : _HColors.stoneBorder),
+                                  width: isYrSelected || isCurrentYr ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Text(
+                                '$yr',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isYrSelected
+                                      ? FontWeight.w800
+                                      : FontWeight.w700,
+                                  color: isYrSelected
+                                      ? Colors.white
+                                      : (isCurrentYr
+                                          ? _HColors.emerald700
+                                          : _HColors.obsidian),
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 12 Months Grid (4 rows x 3 columns)
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 2.2,
+                      ),
+                      itemCount: 12,
+                      itemBuilder: (context, i) {
+                        final monthIndex = i + 1;
+                        final isSelected = pickerYear == _selectedMonth.year &&
+                            monthIndex == _selectedMonth.month;
+                        final isCurrentMonth = pickerYear == now.year &&
+                            monthIndex == now.month;
+
+                        return GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _selectedMonth = DateTime(pickerYear, monthIndex);
+                            });
+                            Navigator.pop(ctx);
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToCurrentDay();
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? _HColors.obsidian
+                                  : (isCurrentMonth
+                                      ? _HColors.emerald50
+                                      : _HColors.surfaceCard),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected
+                                    ? _HColors.obsidian
+                                    : (isCurrentMonth
+                                        ? _HColors.accentMint
+                                        : _HColors.stoneBorder),
+                                width: isSelected || isCurrentMonth ? 1.5 : 1,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              monthNames[i],
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.w800
+                                    : (isCurrentMonth
+                                        ? FontWeight.w800
+                                        : FontWeight.w600),
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isCurrentMonth
+                                        ? _HColors.emerald700
+                                        : _HColors.obsidian),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -846,7 +1092,7 @@ class HistoryScreenState extends State<HistoryScreen> {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: _buildHeader(context),
+                child: _buildHeader(context, realHistory),
               ),
             ],
           ),
@@ -858,176 +1104,909 @@ class HistoryScreenState extends State<HistoryScreen> {
   // =========================================================================
   // HEADER
   // =========================================================================
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, List<WorkoutSession> realHistory) {
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: EdgeInsets.only(
-            top: MediaQuery.paddingOf(context).top + 6,
-            bottom: 10,
-            left: 16,
-            right: 16,
-          ),
           decoration: BoxDecoration(
-            color: _HColors.canvas.withValues(alpha: 0.92),
+            color: _HColors.canvas.withValues(alpha: 0.94),
             border: const Border(bottom: BorderSide(color: Color(0x2057534E))),
+            boxShadow: _isCalendarDropdownOpen
+                ? const [
+                    BoxShadow(
+                      color: Color(0x0E1E232A),
+                      blurRadius: 16,
+                      offset: Offset(0, 6),
+                    ),
+                  ]
+                : null,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Title & Icon
-              Expanded(
+              Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.paddingOf(context).top + 8,
+                  bottom: 10,
+                  left: 20,
+                  right: 16,
+                ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
+                    // Clean Title (dumbbell icon & subtitle row removed)
+                    const Text(
+                      'History',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
                         color: _HColors.obsidian,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x221E232A),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.fitness_center_rounded,
-                        color: Colors.white,
-                        size: 18,
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: _HColors.accentMint,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text(
-                                'Active Log',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: _HColors.stoneMuted,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
+
+                    // Calendar Button (clicking pops scrollable horizontal calendar dropdown)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _toggleCalendarDropdown,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _isCalendarDropdownOpen
+                              ? _HColors.obsidian
+                              : _HColors.surfaceCard,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _isCalendarDropdownOpen
+                                ? _HColors.obsidian
+                                : _HColors.stoneBorder,
                           ),
-                          const SizedBox(height: 1),
-                          const Text(
-                            'History',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: _HColors.obsidian,
-                              letterSpacing: -0.3,
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x08000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_month_outlined,
+                              size: 16,
+                              color: _isCalendarDropdownOpen
+                                  ? Colors.white
+                                  : _HColors.obsidian,
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              _isCalendarDropdownOpen
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 16,
+                              color: _isCalendarDropdownOpen
+                                  ? Colors.white
+                                  : _HColors.stoneMuted,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
 
-              // Action Buttons
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Month Filter Dropdown
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _showMonthPickerSheet,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _HColors.surfaceCard,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _HColors.stoneBorder),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x08000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            DateFormat('MMM yyyy').format(_selectedMonth),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: _HColors.obsidian,
-                            ),
-                          ),
-                          const SizedBox(width: 3),
-                          const Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            size: 16,
-                            color: _HColors.stoneMuted,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-
-                  // Calendar Button
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _showMonthPickerSheet,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: _HColors.surfaceCard,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _HColors.stoneBorder),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x08000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.calendar_month_outlined,
-                        size: 16,
-                        color: _HColors.stoneMuted,
-                      ),
-                    ),
-                  ),
-                ],
+              // Dropdown of drilldown interactive calendar
+              AnimatedCrossFade(
+                firstChild: const SizedBox(width: double.infinity, height: 0),
+                secondChild: _buildDrilldownCalendar(realHistory),
+                crossFadeState: _isCalendarDropdownOpen
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 240),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  // =========================================================================
+  // DRILL-DOWN CALENDAR (YEAR -> MONTH -> DATE & VICE VERSA)
+  // =========================================================================
+  Widget _buildDrilldownCalendar(List<WorkoutSession> realHistory) {
+    final now = DateTime.now();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+      decoration: const BoxDecoration(
+        color: _HColors.canvas,
+        border: Border(
+          top: BorderSide(color: Color(0x1557534E), width: 1),
+        ),
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: _buildCurrentCalendarView(realHistory, now),
+      ),
+    );
+  }
+
+  Widget _buildCurrentCalendarView(
+    List<WorkoutSession> realHistory,
+    DateTime now,
+  ) {
+    switch (_calendarViewMode) {
+      case CalendarViewMode.years:
+        return _buildYearsView(realHistory, now);
+      case CalendarViewMode.months:
+        return _buildMonthsView(realHistory, now);
+      case CalendarViewMode.dates:
+        return _buildDatesView(realHistory, now);
+    }
+  }
+
+  Widget _buildDatesView(List<WorkoutSession> realHistory, DateTime now) {
+    final year = _selectedMonth.year;
+    final month = _selectedMonth.month;
+    final daysInMonth = DateUtils.getDaysInMonth(year, month);
+    final firstDayWeekday = DateTime(year, month, 1).weekday; // 1=Mon, 7=Sun
+    final leadingDaysCount = firstDayWeekday - 1;
+    final prevMonthDaysCount = DateUtils.getDaysInMonth(
+      month == 1 ? year - 1 : year,
+      month == 1 ? 12 : month - 1,
+    );
+
+    final sessionsInMonth = realHistory.where(
+      (s) => s.startTime.year == year && s.startTime.month == month,
+    ).toList();
+    final workoutDays = sessionsInMonth.map((s) => s.startTime.day).toSet();
+
+    final dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final totalGridTiles = ((leadingDaysCount + daysInMonth + 6) ~/ 7) * 7;
+
+    return Column(
+      key: ValueKey('dates_${year}_$month'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Navigation Bar: [<] [Month ▾] [Year ▾] [>] + [Today]
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                // Previous Month Arrow
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedMonth = DateTime(year, month - 1);
+                    });
+                  },
+                ),
+                const SizedBox(width: 4),
+
+                // Month Button (Tapping opens Months view)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _calendarViewMode = CalendarViewMode.months;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: _HColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _HColors.stoneBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          DateFormat('MMMM').format(_selectedMonth),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: _HColors.obsidian,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 14,
+                          color: _HColors.stoneMuted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+
+                // Year Button (Tapping opens Years view)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _yearsBase = (year ~/ 12) * 12;
+                      _calendarViewMode = CalendarViewMode.years;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: _HColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _HColors.stoneBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$year',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: _HColors.obsidian,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 14,
+                          color: _HColors.stoneMuted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+
+                // Next Month Arrow
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedMonth = DateTime(year, month + 1);
+                    });
+                  },
+                ),
+              ],
+            ),
+
+            // Today Button
+            if (year != now.year || month != now.month || _selectedDate != null)
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _selectedMonth = DateTime(now.year, now.month);
+                    _selectedDate = DateTime(now.year, now.month, now.day);
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _HColors.emerald50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _HColors.emerald200),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.today_rounded, size: 12, color: _HColors.emerald700),
+                      SizedBox(width: 3),
+                      Text(
+                        'Today',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: _HColors.emerald700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Weekday Headers
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: dayLetters.map((d) {
+            return Expanded(
+              child: Center(
+                child: Text(
+                  d,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: _HColors.stoneMuted,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 6),
+
+        // 7-Column Dates Grid
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: totalGridTiles,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            childAspectRatio: 1.15,
+          ),
+          itemBuilder: (context, i) {
+            if (i < leadingDaysCount) {
+              final prevDay = prevMonthDaysCount - leadingDaysCount + 1 + i;
+              return Center(
+                child: Text(
+                  '$prevDay',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0x3557534E),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+
+            final day = i - leadingDaysCount + 1;
+            if (day > daysInMonth) {
+              final nextDay = day - daysInMonth;
+              return Center(
+                child: Text(
+                  '$nextDay',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0x3557534E),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+
+            final date = DateTime(year, month, day);
+            final isToday = date.year == now.year &&
+                date.month == now.month &&
+                date.day == now.day;
+            final isSelected = _selectedDate != null &&
+                _selectedDate!.year == date.year &&
+                _selectedDate!.month == date.month &&
+                _selectedDate!.day == date.day;
+            final hasWorkout = workoutDays.contains(day);
+
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _selectedDate = isSelected ? null : date;
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? _HColors.obsidian
+                      : (isToday ? _HColors.emerald50 : Colors.transparent),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected
+                        ? _HColors.obsidian
+                        : (isToday
+                            ? _HColors.accentMint
+                            : (hasWorkout
+                                ? _HColors.stoneLight
+                                : Colors.transparent)),
+                    width: isSelected || isToday ? 1.5 : 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$day',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: isSelected || isToday || hasWorkout
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : (isToday
+                                ? _HColors.emerald700
+                                : (hasWorkout
+                                    ? _HColors.obsidian
+                                    : _HColors.textPrimary)),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: hasWorkout
+                            ? (isSelected ? _HColors.accentMint : _HColors.accentMint)
+                            : Colors.transparent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+
+        // Bottom status pill
+        const SizedBox(height: 8),
+        if (_selectedDate != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Showing ${DateFormat('EEE, MMM d').format(_selectedDate!)} workouts',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: _HColors.emerald700,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _selectedDate = null);
+                },
+                child: const Text(
+                  'Clear Filter',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: _HColors.obsidian,
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          Text(
+            '${sessionsInMonth.length} workouts logged in ${DateFormat('MMMM yyyy').format(_selectedMonth)}',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: _HColors.stoneMuted,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMonthsView(List<WorkoutSession> realHistory, DateTime now) {
+    final year = _selectedMonth.year;
+    final allMonths = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    final shortMonths = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+
+    final sessionsInYear = realHistory.where((s) => s.startTime.year == year).toList();
+
+    return Column(
+      key: ValueKey('months_$year'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Navigation Bar: [<] "Select Month" [Year ▾] [>] + [Dates ✕]
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedMonth = DateTime(year - 1, _selectedMonth.month);
+                    });
+                  },
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'Month for',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _HColors.stoneMuted,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // Clicking Year opens Years View!
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _yearsBase = (year ~/ 12) * 12;
+                      _calendarViewMode = CalendarViewMode.years;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _HColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _HColors.stoneBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$year',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: _HColors.obsidian,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 15,
+                          color: _HColors.stoneMuted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedMonth = DateTime(year + 1, _selectedMonth.month);
+                    });
+                  },
+                ),
+              ],
+            ),
+            // Return to Dates button
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _calendarViewMode = CalendarViewMode.dates;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _HColors.stoneTint,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _HColors.stoneBorder),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Dates',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: _HColors.obsidian,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(Icons.calendar_view_month_rounded, size: 12, color: _HColors.obsidian),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // 12 Months Grid (4 rows x 3 columns)
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 12,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2.1,
+          ),
+          itemBuilder: (context, i) {
+            final monthNum = i + 1;
+            final isSelected = monthNum == _selectedMonth.month;
+            final isCurrentMonth = monthNum == now.month && year == now.year;
+            final sessionCount = sessionsInYear.where((s) => s.startTime.month == monthNum).length;
+
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _selectedMonth = DateTime(year, monthNum);
+                  _calendarViewMode = CalendarViewMode.dates; // DRILLS DOWN TO DATES!
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? _HColors.obsidian
+                      : (isCurrentMonth
+                          ? _HColors.emerald50
+                          : _HColors.surfaceCard),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? _HColors.obsidian
+                        : (isCurrentMonth
+                            ? _HColors.accentMint
+                            : _HColors.stoneBorder),
+                    width: isSelected || isCurrentMonth ? 1.5 : 1,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      shortMonths[i],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: isSelected
+                            ? Colors.white
+                            : (isCurrentMonth
+                                ? _HColors.emerald700
+                                : _HColors.obsidian),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      sessionCount > 0 ? '$sessionCount logs' : allMonths[i],
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? _HColors.accentMint
+                            : (isCurrentMonth
+                                ? _HColors.emerald700
+                                : _HColors.stoneMuted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildYearsView(List<WorkoutSession> realHistory, DateTime now) {
+    final startYear = _yearsBase;
+    final endYear = _yearsBase + 11;
+
+    return Column(
+      key: ValueKey('years_$_yearsBase'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Navigation Bar: [<] "$startYear – $endYear" [>] + [Months ✕]
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _yearsBase -= 12;
+                    });
+                  },
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$startYear – $endYear',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: _HColors.obsidian,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                  color: _HColors.obsidian,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _yearsBase += 12;
+                    });
+                  },
+                ),
+              ],
+            ),
+            // Return to Months button
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _calendarViewMode = CalendarViewMode.months;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _HColors.stoneTint,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _HColors.stoneBorder),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Months',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: _HColors.obsidian,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(Icons.arrow_forward_rounded, size: 12, color: _HColors.obsidian),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // 12 Years Grid (4 rows x 3 columns)
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 12,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2.1,
+          ),
+          itemBuilder: (context, i) {
+            final y = startYear + i;
+            final isSelected = y == _selectedMonth.year;
+            final isCurrentYear = y == now.year;
+            final workoutCount = realHistory.where((s) => s.startTime.year == y).length;
+
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _selectedMonth = DateTime(y, _selectedMonth.month);
+                  _calendarViewMode = CalendarViewMode.months; // DRILLS DOWN TO MONTHS!
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? _HColors.obsidian
+                      : (isCurrentYear
+                          ? _HColors.emerald50
+                          : _HColors.surfaceCard),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? _HColors.obsidian
+                        : (isCurrentYear
+                            ? _HColors.accentMint
+                            : _HColors.stoneBorder),
+                    width: isSelected || isCurrentYear ? 1.5 : 1,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$y',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: isSelected
+                            ? Colors.white
+                            : (isCurrentYear
+                                ? _HColors.emerald700
+                                : _HColors.obsidian),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      workoutCount > 0 ? '$workoutCount workouts' : 'No logs',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? _HColors.accentMint
+                            : (isCurrentYear
+                                ? _HColors.emerald700
+                                : _HColors.stoneMuted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -1286,166 +2265,297 @@ class HistoryScreenState extends State<HistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: _HColors.emerald50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _HColors.emerald200),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_view_month_rounded,
-                        size: 16,
-                        color: _HColors.accentMint,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'MONTHLY HEATMAP',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: _HColors.stoneMuted,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          Text(
-                            DateFormat('MMMM yyyy').format(_selectedMonth),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: _HColors.obsidian,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Dedicated Telemetry Capsule
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _HColors.emerald50,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _HColors.emerald200),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.local_fire_department_rounded,
-                      color: _HColors.accentMint,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      '${monthSessions.length} / $daysInMonth Logged',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: _HColors.emerald700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Calendar Heatmap Grid
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: _HColors.stoneTint,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _HColors.stoneLight),
-            ),
-            child: Column(
+          // Header (Tappable Dropdown Toggle)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() {
+                _isHeatmapExpanded = !_isHeatmapExpanded;
+              });
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Weekday Headers
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-                      .map(
-                        (d) => Expanded(
-                          child: Center(
-                            child: Text(
-                              d,
-                              style: const TextStyle(
-                                fontSize: 9,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: _HColors.emerald50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: _HColors.emerald200),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_view_month_rounded,
+                          size: 16,
+                          color: _HColors.accentMint,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'MONTHLY HEATMAP',
+                              style: TextStyle(
+                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: _HColors.stoneMuted,
+                                letterSpacing: 0.5,
                               ),
                             ),
-                          ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      _selectedMonth = DateTime(
+                                        _selectedMonth.year,
+                                        _selectedMonth.month - 1,
+                                      );
+                                    });
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      _scrollToCurrentDay();
+                                    });
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 2),
+                                    child: Icon(
+                                      Icons.chevron_left_rounded,
+                                      size: 17,
+                                      color: _HColors.stoneMuted,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: _showMonthPickerSheet,
+                                  child: Text(
+                                    DateFormat('MMMM yyyy').format(_selectedMonth),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: _HColors.obsidian,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      _selectedMonth = DateTime(
+                                        _selectedMonth.year,
+                                        _selectedMonth.month + 1,
+                                      );
+                                    });
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      _scrollToCurrentDay();
+                                    });
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 2),
+                                    child: Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: 17,
+                                      color: _HColors.stoneMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      )
-                      .toList(),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 6),
-
-                // Heatmap Tiles (5 weeks)
-                _buildHeatmapTiles(firstDayWeekday, daysInMonth, realHistory),
+                const SizedBox(width: 8),
+                // Dedicated Telemetry Capsule
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _HColors.emerald50,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _HColors.emerald200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        color: _HColors.accentMint,
+                        size: 13,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${monthSessions.length} / $daysInMonth Logged',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: _HColors.emerald700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // Dropdown Chevron Indicator
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: _HColors.stoneTint,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _HColors.stoneLight),
+                  ),
+                  child: Icon(
+                    _isHeatmapExpanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: _HColors.stoneMuted,
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
 
-          // Legend + Month Load Capsule
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
+          // Collapsible Heatmap Grid & Legend
+          if (_isHeatmapExpanded) ...[
+            const SizedBox(height: 12),
+
+            // Calendar Heatmap Grid
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _HColors.stoneTint,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _HColors.stoneLight),
+              ),
+              child: Column(
                 children: [
-                  _legendItem('Rest', _HColors.stoneLight),
-                  const SizedBox(width: 8),
-                  _legendItem('Mobility', _HColors.emerald100),
-                  const SizedBox(width: 8),
-                  _legendItem('Session', _HColors.accentMint),
-                  const SizedBox(width: 8),
-                  _legendItem('PR Day', _HColors.obsidian),
+                  // Weekday Headers
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+                        .map(
+                          (d) => Expanded(
+                            child: Center(
+                              child: Text(
+                                d,
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: _HColors.stoneMuted,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Heatmap Tiles (5 weeks)
+                  _buildHeatmapTiles(firstDayWeekday, daysInMonth, realHistory),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _HColors.stoneTint,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _HColors.stoneLight),
+            ),
+            const SizedBox(height: 10),
+
+            // Legend + Month Load Capsule
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _legendItem('Rest', _HColors.stoneLight),
+                    const SizedBox(width: 8),
+                    _legendItem('Mobility', _HColors.emerald100),
+                    const SizedBox(width: 8),
+                    _legendItem('Session', _HColors.accentMint),
+                    const SizedBox(width: 8),
+                    _legendItem('PR Day', _HColors.obsidian),
+                  ],
                 ),
-                child: Text(
-                  'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: _HColors.obsidian,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _HColors.stoneTint,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _HColors.stoneLight),
+                  ),
+                  child: Text(
+                    'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: _HColors.obsidian,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Month Load: ${monthLoadReps.toLocaleString()} Strict Reps',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: _HColors.stoneMuted,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _isHeatmapExpanded = true;
+                    });
+                  },
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View Heatmap',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: _HColors.obsidian,
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 14,
+                        color: _HColors.obsidian,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1897,9 +3007,16 @@ class HistoryScreenState extends State<HistoryScreen> {
       );
     }
 
+    final targetHistory = _selectedDate != null
+        ? realHistory.where((s) =>
+            s.startTime.year == _selectedDate!.year &&
+            s.startTime.month == _selectedDate!.month &&
+            s.startTime.day == _selectedDate!.day).toList()
+        : realHistory;
+
     final List<Map<String, dynamic>> sessions = [];
-    for (int i = 0; i < realHistory.length; i++) {
-      final s = realHistory[i];
+    for (int i = 0; i < targetHistory.length; i++) {
+      final s = targetHistory[i];
       sessions.add({
         'id': s.id,
         'date': DateFormat('EEEE, MMM d').format(s.startTime),
@@ -1949,9 +3066,98 @@ class HistoryScreenState extends State<HistoryScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
-        // Timeline with Continuous Vertical Guide Rail
+        // Filtered date banner (if a date is selected in the calendar)
+        if (_selectedDate != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _HColors.emerald50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _HColors.emerald200),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.filter_alt_outlined,
+                      size: 14,
+                      color: _HColors.emerald700,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Filtered: ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate!)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _HColors.emerald700,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedDate = null;
+                    });
+                  },
+                  child: const Text(
+                    'Show All',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: _HColors.obsidian,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        if (sessions.isEmpty && _selectedDate != null)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: _HColors.surfaceCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _HColors.stoneBorder),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.event_busy_rounded,
+                    size: 32,
+                    color: _HColors.stoneMuted,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No workouts logged on ${DateFormat('MMMM d, yyyy').format(_selectedDate!)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _HColors.obsidian,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      setState(() => _selectedDate = null);
+                    },
+                    child: const Text('Show All Workouts'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          // Timeline with Continuous Vertical Guide Rail
         Stack(
           children: [
             // Vertical Guide Rail Line
